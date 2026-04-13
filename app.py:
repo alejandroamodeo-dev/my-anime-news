@@ -2,20 +2,53 @@
 import streamlit as st
 import requests
 
-st.set_page_config(page_title="Anime News", page_icon="🏯")
-st.title("🏯 Ultime Notizie Anime")
+# Configurazione della pagina
+st.set_page_config(page_title="Anime News Hub", page_icon="⛩️", layout="wide")
 
-# Recupero dati dall'API Jikan
-response = requests.get("https://jikan.moe")
-news = response.json().get('data', [])
+# Design personalizzato con CSS (Stile Anime)
+st.markdown("""
+    <style>
+    .main { background-color: #f0f2f6; }
+    .stTitle { color: #ff4b4b; font-family: 'Courier New'; }
+    </style>
+    """, unsafe_allow_html=True)
 
-for anime in news[:15]:
-    with st.container():
-        col1, col2 = st.columns([1, 2])
-        with col1:
-            st.image(anime['images']['jpg']['image_url'])
-        with col2:
-            st.subheader(anime['title'])
-            st.write(f"**Voto:** {anime.get('score', 'N/A')}")
-            st.write(f"[Leggi di più su MyAnimeList]({anime['url']})")
-        st.divider()
+st.title("⛩️ Anime News Hub")
+st.sidebar.header("Filtri e Ricerca")
+
+# 1. Barra di Ricerca
+query = st.sidebar.text_input("Cerca un anime specifico:")
+
+# 2. Menu Categorie
+categoria = st.sidebar.selectbox("Cosa vuoi vedere?", ["In corso", "I più popolari", "Prossimamente"])
+
+# Funzione per scaricare i dati
+def carica_dati(tipo):
+    urls = {
+        "In corso": "https://jikan.moe",
+        "I più popolari": "https://api.jikan.moe/v4/top/anime",
+        "Prossimamente": "https://jikan.moe"
+    }
+    res = requests.get(urls[tipo])
+    return res.json().get('data', [])
+
+# Logica di visualizzazione
+if query:
+    st.subheader(f"Risultati per: {query}")
+    res = requests.get(f"https://api.jikan.moe/v4/anime?q={query}")
+    notizie = res.json().get('data', [])
+else:
+    st.subheader(f"Sezione: {categoria}")
+    notizie = carca_dati(categoria)
+
+# Creazione della griglia di notizie
+for i in range(0, len(notizie[:12]), 3): # Mostra 12 anime in righe da 3
+    cols = st.columns(3)
+    for j in range(3):
+        if i + j < len(notizie):
+            anime = notizie[i + j]
+            with cols[j]:
+                st.image(anime['images']['jpg']['image_url'], use_container_width=True)
+                st.write(f"**{anime['title']}**")
+                st.caption(f"Punteggio: ⭐ {anime.get('score', 'N/A')}")
+                st.link_button("Dettagli", anime['url'])

@@ -87,19 +87,23 @@ if auth_status:
     st.write("---")
 
     categoria = st.selectbox("FILTRO_SETTORE", ["IN CORSO", "PROSSIMAMENTE", "TOP_RATED"])
-
-    @st.cache_data
+    @st.cache_data(ttl=3600) # Ricorda i dati per un'ora per non stressare l'API
     def get_data(mode):
         urls = {
             "IN CORSO": "https://jikan.moe",
             "PROSSIMAMENTE": "https://jikan.moe",
             "TOP_RATED": "https://jikan.moe"
         }
-        r = requests.get(urls[mode])
-        return r.json().get('data', [])
-
-    data = get_data(categoria)
-
+        try:
+            r = requests.get(urls[mode])
+            # Controlliamo se la risposta è valida prima di leggerla
+            if r.status_code == 200:
+                return r.json().get('data', [])
+            else:
+                return []
+        except Exception as e:
+            # Se c'è un errore (tipo JSONDecodeError), restituiamo una lista vuota invece di rompere il sito
+            return []
     cols = st.columns(3)
     for i, anime in enumerate(data[:12]):
         with cols[i % 3]:

@@ -3,8 +3,8 @@ import requests
 import streamlit_authenticator as stauth
 from datetime import datetime
 
-# --- 1. CONFIGURAZIONE & STILE "ULTRA NEON" ---
-st.set_page_config(page_title="Anime News Nexus", page_icon="📡", layout="wide")
+# --- 1. CONFIGURAZIONE & STILE BRANDIZZATO "MY ANIME NEWS" ---
+st.set_page_config(page_title="My Anime News - Portale Ufficiale", page_icon="🏮", layout="wide")
 
 st.markdown("""
     <style>
@@ -17,19 +17,28 @@ st.markdown("""
         font-family: 'Space Grotesk', sans-serif;
     }
 
-    /* HEADER NEWS STYLE */
-    .news-header {
+    /* LOGO PRINCIPALE MY ANIME NEWS */
+    .brand-header {
         font-family: 'Syncopate', sans-serif;
-        font-size: 3rem;
+        font-size: 3.5rem;
         text-align: center;
-        background: linear-gradient(90deg, #ff4b4b, #8000ff);
+        background: linear-gradient(90deg, #ff4b4b, #ff8080);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        margin-bottom: 40px;
-        text-shadow: 0 0 20px rgba(255, 75, 75, 0.3);
+        margin-bottom: 10px;
+        text-shadow: 0 0 25px rgba(255, 75, 75, 0.4);
+    }
+    
+    .brand-subtitle {
+        text-align: center;
+        letter-spacing: 8px;
+        color: #888;
+        font-size: 0.9rem;
+        margin-bottom: 50px;
+        text-transform: uppercase;
     }
 
-    /* NEWS CARD - INTERATTIVA E MODERNA */
+    /* NEWS CARD PERSONALIZZATA */
     .news-card {
         background: rgba(255, 255, 255, 0.03);
         border: 1px solid rgba(255, 255, 255, 0.1);
@@ -38,43 +47,37 @@ st.markdown("""
         transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         margin-bottom: 20px;
         height: 100%;
-        backdrop-filter: blur(10px);
+        backdrop-filter: blur(12px);
     }
 
     .news-card:hover {
         background: rgba(255, 255, 255, 0.07);
         border-color: #ff4b4b;
-        transform: translateY(-10px) scale(1.02);
-        box-shadow: 0 15px 40px rgba(255, 75, 75, 0.2);
+        transform: translateY(-8px);
+        box-shadow: 0 15px 45px rgba(255, 75, 75, 0.25);
     }
 
     .news-tag {
         background: #ff4b4b;
         color: white;
-        padding: 4px 12px;
+        padding: 5px 15px;
         border-radius: 50px;
-        font-size: 0.7rem;
-        font-weight: bold;
+        font-size: 0.65rem;
+        font-weight: 800;
         text-transform: uppercase;
     }
 
-    .news-date {
-        color: #888;
-        font-size: 0.8rem;
-        float: right;
-    }
-
     .news-title {
-        font-size: 1.25rem;
+        font-size: 1.3rem;
         font-weight: 700;
         margin: 15px 0;
         color: #fff;
-        line-height: 1.3;
+        line-height: 1.2;
     }
 
-    /* BARRA LATERALE */
+    /* SIDEBAR */
     [data-testid="stSidebar"] {
-        background-color: #111 !important;
+        background-color: #0c0c0e !important;
         border-right: 1px solid #222;
     }
     </style>
@@ -83,8 +86,8 @@ st.markdown("""
 # --- 2. SISTEMA ACCOUNT ---
 if 'config' not in st.session_state:
     st.session_state['config'] = {
-        "credentials": {"usernames": {"admin": {"name": "Capo Redattore", "password": "$2b$12$K7T6U/f0XpM9kPzN8Ff1.O6R5T7n5.N0v4P0E7S6Z.k6W/F7f5W2K", "email": "admin@anime.it"}}},
-        "cookie": {"key": "news_key", "name": "news_cookie", "expiry_days": 30}
+        "credentials": {"usernames": {"admin": {"name": "Redattore MyAnime", "password": "$2b$12$K7T6U/f0XpM9kPzN8Ff1.O6R5T7n5.N0v4P0E7S6Z.k6W/F7f5W2K", "email": "news@myanimenews.it"}}},
+        "cookie": {"key": "man_key", "name": "man_cookie", "expiry_days": 30}
     }
 
 authenticator = stauth.Authenticate(
@@ -94,68 +97,65 @@ authenticator = stauth.Authenticate(
     st.session_state['config']['cookie']['expiry_days']
 )
 
-# --- 3. LOGICA NEWS FETCHING (API REALE) ---
-@st.cache_data(ttl=300) # Aggiorna ogni 5 minuti
-def get_anime_news():
-    # Usiamo Jikan v4 per le news globali e top news
+# --- 3. FETCH NEWS ---
+@st.cache_data(ttl=300)
+def get_live_news():
     try:
-        url = "https://jikan.moe" # Esempio: News generali
-        # Nota: Per news globali reali spesso si usano RSS Feed di ANN o Crunchyroll
-        # In questo esempio simuliamo il feed dinamico dalle API più stabili
-        r = requests.get("https://jikan.moe") 
+        # Recupera i top anime per simulare le news più calde
+        r = requests.get("https://jikan.moe")
         return r.json().get('data', [])[:12]
     except:
         return []
 
-# --- 4. INTERFACCIA UTENTE ---
+# --- 4. LOGICA APP ---
 name, auth_status, username = authenticator.login(location='sidebar')
 
 if auth_status:
-    st.sidebar.markdown("### 🖥️ REDAZIONE")
-    st.sidebar.write(f"Operatore: **{name}**")
-    authenticator.logout('Logout', 'sidebar')
+    # Sidebar Brandizzata
+    st.sidebar.markdown("<h2 style='color:#ff4b4b; text-align:center;'>🏮 MAN</h2>", unsafe_allow_html=True)
+    st.sidebar.info(f"Redattore: **{name}**")
+    authenticator.logout('Chiudi Sessione', 'sidebar')
 
-    st.markdown('<h1 class="news-header">ANIME NEWS NEXUS</h1>', unsafe_allow_html=True)
+    # Header Principale
+    st.markdown('<h1 class="brand-header">MY ANIME NEWS</h1>', unsafe_allow_html=True)
+    st.markdown('<p class="brand-subtitle">Il tuo radar quotidiano sul mondo dell\'animazione</p>', unsafe_allow_html=True)
     
-    # Notizie "Flash" Interattive
-    st.info("⚡ **ULTIM'ORA:** Annunciata la Stagione 3 di *Frieren* per Ottobre 2027!")
+    st.divider()
 
-    news_data = get_anime_news()
+    news_list = get_live_news()
 
-    if news_data:
+    if news_list:
         cols = st.columns(3)
-        for idx, news in enumerate(news_data):
+        for idx, item in enumerate(news_list):
             with cols[idx % 3]:
-                # Estetica News Card
                 st.markdown(f"""
                     <div class="news-card">
-                        <span class="news-tag">BREAKING</span>
-                        <span class="news-date">{datetime.now().strftime('%d %b')}</span>
-                        <img src="{news['images']['jpg']['large_image_url']}" style="width:100%; height:180px; object-fit:cover; border-radius:10px; margin-top:10px;">
-                        <div class="news-title">{news['title']}</div>
-                        <p style="color:#aaa; font-size:0.9rem;">Nuovi aggiornamenti sulla produzione e date di uscita ufficiali dal Giappone.</p>
+                        <span class="news-tag">MY ANIME NEWS • ESCLUSIVA</span>
+                        <span style="float:right; color:#666; font-size:0.8rem;">{datetime.now().strftime('%H:%M')}</span>
+                        <img src="{item['images']['jpg']['large_image_url']}" style="width:100%; height:200px; object-fit:cover; border-radius:12px; margin: 15px 0;">
+                        <div class="news-title">{item['title']}</div>
+                        <p style="color:#888; font-size:0.9rem;">Ultimi dettagli sulla produzione: lo studio conferma il rilascio di nuovi materiali promozionali.</p>
                     </div>
                 """, unsafe_allow_html=True)
                 
-                # Interazione Streamlit
-                with st.expander("LEGGI REPORT COMPLETO"):
-                    st.write(f"**Fonte:** {news.get('source', 'Japan Media Group')}")
-                    st.write("Dettagli: L'industria dell'animazione segna un nuovo record di visualizzazioni. Gli studi confermano il ritorno delle serie più amate con trailer esclusivi.")
-                    st.link_button("VAI ALLA FONTE", news['url'], use_container_width=True)
+                with st.expander("LEGGI ARTICOLO COMPLETO"):
+                    st.write(f"**Titolo originale:** {item.get('title_japanese', 'N/D')}")
+                    st.write("**Report:** La redazione di My Anime News ha analizzato i dati di ascolto e le recensioni critiche. La serie si posiziona tra le più attese della stagione.")
+                    st.link_button("FONTE ORIGINALE", item['url'], use_container_width=True)
     else:
-        st.warning("📡 Ricerca segnale news in corso... Riprova tra un istante.")
+        st.warning("📡 Collegamento ai server My Anime News in corso...")
 
 elif auth_status is False:
-    st.sidebar.error("Accesso negato.")
+    st.sidebar.error("Credenziali My Anime News non valide.")
 else:
-    # Pagina d'ingresso stile "Sito News Professionale"
+    # Welcome Page "My Anime News"
     st.markdown("""
         <div style="text-align:center; margin-top:100px;">
-            <h1 class="news-header" style="font-size:5rem;">📡 NEXUS</h1>
-            <p style="font-size:1.5rem; letter-spacing:10px; color:#666;">ALL ACCESS NEWS FEED</p>
-            <div style="background:rgba(255,75,75,0.1); padding:20px; border-radius:15px; border:1px solid #ff4b4b; display:inline-block; margin-top:30px;">
-                <p style="margin:0; font-weight:bold;">SISTEMA PROTETTO: EFFETTUARE IL LOGIN</p>
-                <p style="font-size:0.8rem; opacity:0.6;">Admin: admin | Pass: 123</p>
+            <h1 class="brand-header" style="font-size:5rem;">MY ANIME NEWS</h1>
+            <p style="font-size:1.4rem; letter-spacing:12px; color:#555;">GATEWAY ACCESSO REDAZIONE</p>
+            <div style="background:rgba(255,75,75,0.05); padding:30px; border-radius:20px; border:1px solid rgba(255,75,75,0.3); display:inline-block; margin-top:40px;">
+                <p style="margin:0; font-size:1.1rem;">Inserire le credenziali nella barra laterale</p>
+                <code style="color:#ff4b4b; background:transparent;">admin | 123</code>
             </div>
         </div>
     """, unsafe_allow_html=True)

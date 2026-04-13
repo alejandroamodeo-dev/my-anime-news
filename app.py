@@ -3,10 +3,9 @@ import requests
 import streamlit_authenticator as stauth
 import json
 import os
-from datetime import datetime
 
-# --- 1. CONFIGURAZIONE E DATI GITHUB ---
-# Inserisci qui il tuo nome utente e il nome del progetto
+# --- 1. CONFIGURAZIONE DATI GITHUB ---
+# Assicurati che questi siano i tuoi dati corretti
 USER = "theadmin" 
 REPO = "my-anime-news"
 
@@ -15,10 +14,9 @@ URL_BENVENUTO = f"https://githubusercontent.com{USER}/{REPO}/main/benvenuto.jpg"
 
 st.set_page_config(page_title="My Anime News Pro", page_icon="🏮", layout="wide")
 
-# --- 2. ANIMAZIONI E STILE CSS ---
+# --- 2. ANIMAZIONI E STILE CSS (CORRETTO CON DOPPIE GRAFFE) ---
 st.markdown(f"""
     <style>
-    /* ANIMAZIONE ZOOM LENTO SFONDO */
     @keyframes slowZoom {{
         0% {{ transform: scale(1); }}
         50% {{ transform: scale(1.1); }}
@@ -33,12 +31,10 @@ st.markdown(f"""
         animation: slowZoom 40s infinite ease-in-out;
     }}
 
-    /* TRASPARENZA LIVELLI */
     [data-testid="stAppViewContainer"], [data-testid="stHeader"], [data-testid="stMainViewContainer"] {{
         background-color: rgba(0, 0, 0, 0) !important;
     }}
 
-    /* CONTENITORE CENTRALE */
     .main .block-container {{
         background-color: rgba(0, 0, 0, 0.8);
         backdrop-filter: blur(8px);
@@ -48,7 +44,6 @@ st.markdown(f"""
         box-shadow: 0 0 30px rgba(255, 75, 75, 0.2);
     }}
     
-    /* LOGO GIGANTE ANIMATO */
     @keyframes pulse {{ 0% {{ transform: scale(1); }} 50% {{ transform: scale(1.05); }} 100% {{ transform: scale(1); }} }}
     .logo-text {{
         font-size: 50px !important;
@@ -60,14 +55,13 @@ st.markdown(f"""
         line-height: 1.1;
     }}
 
-    /* CARD ANIME */
     .anime-card {{
         background-color: rgba(255, 255, 255, 0.1);
         border-radius: 15px;
         padding: 20px;
         border: 1px solid #444;
         transition: 0.4s;
-    }
+    }}
     .anime-card:hover {{
         border-color: #ff4b4b;
         transform: translateY(-10px);
@@ -101,24 +95,22 @@ if auth_status:
     url_map = {"IN CORSO": "seasons/now", "PROSSIMAMENTE": "seasons/upcoming", "TOP RATED": "top/anime"}
 
     try:
-        res = requests.get(f"https://jikan.moe{url_map[categoria]}").json().get('data', [])[:12]
+        res = requests.get(f"https://jikan.moe{{url_map[categoria]}}").json().get('data', [])[:12]
         cols = st.columns(3)
         for i, anime in enumerate(res):
             with cols[i % 3]:
                 st.markdown(f"""
                     <div class="anime-card">
-                        <img src="{anime['images']['jpg']['large_image_url']}" style="width:100%; height:300px; object-fit:cover; border-radius:10px;">
-                        <h4 style="color:#00d4ff; margin-top:10px;">{anime['title'][:30]}</h4>
+                        <img src="{{anime['images']['jpg']['large_image_url']}}" style="width:100%; height:300px; object-fit:cover; border-radius:10px;">
+                        <h4 style="color:#00d4ff; margin-top:10px;">{{anime['title'][:30]}}</h4>
                     </div>
                 """, unsafe_allow_html=True)
                 st.link_button("DETTAGLI", anime['url'])
     except:
-        st.error("Errore nel caricamento dei dati dal database.")
+        st.error("Errore nel caricamento dei dati.")
 
 else:
-    # SCHERMATA DI BENVENUTO
     st.title("🏯 ACCESSO PROTETTO")
-    # Immagine di benvenuto da GitHub
     st.image(URL_BENVENUTO, use_container_width=True)
     
     with st.sidebar.expander("🆕 REGISTRATI"):
@@ -126,6 +118,4 @@ else:
             if authenticator.register_user(location='sidebar'):
                 st.success('Registrato! Accedi sopra.')
         except Exception as e:
-            st.error(f"Errore: {e}")
-    
-    st.warning("Identificati nella barra laterale per sbloccare i file riservati.")
+            st.error(f"Errore: {{e}}")

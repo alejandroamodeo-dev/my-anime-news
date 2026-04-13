@@ -143,12 +143,12 @@ if auth_status:
 elif auth_status is False:
     st.sidebar.error("Credenziali respinte dal sistema.")
 
-# --- AGGIUNTA REGISTRAZIONE CON FIX PRE-AUTHORIZATION ---
+# --- AGGIUNTA REGISTRAZIONE CON FIX PARAMETRO ---
 if auth_status is None:
     with st.sidebar.expander("Non hai un account? Registrati"):
         try:
-            # pre_authorized=[] risolve l'errore segnalato
-            if authenticator.register_user(location='main', pre_authorized=[]):
+            # Cambiato pre_authorized in pre_authorization come richiesto dall'errore
+            if authenticator.register_user(location='main', pre_authorization=[]):
                 st.success('Registrazione completata! Effettua il login dal pannello laterale.')
         except Exception as e:
             st.error(f"Errore: {e}")

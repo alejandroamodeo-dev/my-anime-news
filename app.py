@@ -16,7 +16,7 @@ st.markdown("""
         font-family: 'Rajdhani', sans-serif;
     }
 
-    /* PETALI DI CILIEGIO INGRANDITI */
+    /* PETALI DI CILIEGIO GRANDI */
     .sakura-container {
         position: fixed;
         top: 0; left: 0; width: 100%; height: 100%;
@@ -36,7 +36,7 @@ st.markdown("""
         100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
     }
 
-    /* TITOLI GRANDI */
+    /* LOGO & TITOLI (RIPRISTINATI) */
     .anime-logo {
         font-family: 'Bangers', cursive;
         font-size: 6.5rem;
@@ -48,7 +48,7 @@ st.markdown("""
 
     .fresche-title {
         text-align: center;
-        font-size: 2.2rem;
+        font-size: 2rem;
         color: #ffb7c5;
         font-weight: 700;
         letter-spacing: 8px;
@@ -66,30 +66,24 @@ st.markdown("""
     }
     
     .anime-title-text {
-        font-size: 1.7rem;
+        font-size: 1.6rem;
         font-weight: 700;
         color: #ff4b4b;
         margin-top: 10px;
     }
 
     .anime-info-text {
-        font-size: 1.2rem;
+        font-size: 1.1rem;
         color: #ccc;
-    }
-
-    /* BARRA LATERALE */
-    [data-testid="stSidebar"] {
-        background: #0c0c0e !important;
-        border-right: 2px solid #ff4b4b;
     }
     </style>
 
     <div class="sakura-container">
-        <div class="petal" style="width:18px; height:18px; left:5%; animation-duration:8s;"></div>
-        <div class="petal" style="width:25px; height:25px; left:20%; animation-duration:12s;"></div>
-        <div class="petal" style="width:20px; height:20px; left:45%; animation-duration:10s;"></div>
-        <div class="petal" style="width:28px; height:28px; left:70%; animation-duration:15s;"></div>
-        <div class="petal" style="width:18px; height:18px; left:90%; animation-duration:11s;"></div>
+        <div class="petal" style="width:20px; height:20px; left:5%; animation-duration:8s;"></div>
+        <div class="petal" style="width:28px; height:28px; left:20%; animation-duration:12s;"></div>
+        <div class="petal" style="width:22px; height:22px; left:45%; animation-duration:10s;"></div>
+        <div class="petal" style="width:30px; height:30px; left:70%; animation-duration:15s;"></div>
+        <div class="petal" style="width:20px; height:20px; left:90%; animation-duration:11s;"></div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -115,11 +109,9 @@ authenticator = stauth.Authenticate(
 name, auth_status, username = authenticator.login(location='sidebar')
 
 if auth_status:
-    st.sidebar.markdown("<h2 style='color:#ff4b4b; text-align:center;'>🏮 ONLINE</h2>", unsafe_allow_html=True)
     st.sidebar.write(f"Bentornato, **{name}**")
     authenticator.logout('Esci dal Database', 'sidebar')
 
-    # CONTENUTO PRINCIPALE
     st.markdown('<p class="anime-logo">MY ANIME NEWS</p>', unsafe_allow_html=True)
     st.markdown('<p class="fresche-title">INFORMAZIONI ANIME FRESCHE</p>', unsafe_allow_html=True)
 
@@ -130,34 +122,32 @@ if auth_status:
             with cols[i % 3]:
                 st.markdown(f"""
                     <div class="fresh-card">
-                        <img src="{anime['images']['jpg']['large_image_url']}" style="width:100%; height:300px; object-fit:cover; border-radius:10px;">
+                        <img src="{anime['images']['jpg']['large_image_url']}" style="width:100%; height:280px; object-fit:cover; border-radius:10px;">
                         <div class="anime-title-text">{anime['title'][:30]}</div>
                         <p class="anime-info-text">{anime.get('studios', [{'name':'N/D'}])['name']} • {anime.get('episodes', '?')} Ep.</p>
                     </div>
                 """, unsafe_allow_html=True)
-                with st.expander("SCROLL INFORMAZIONI"):
+                with st.expander("DETTAGLI"):
                     st.write(f"**Trama:** {anime.get('synopsis', 'Info segrete...')[:250]}...")
-                    st.link_button("FONTE ORIGINALE", anime['url'], use_container_width=True)
+                    st.link_button("VAI ALLA FONTE", anime['url'], use_container_width=True)
     except:
         st.error("Errore di sincronizzazione.")
 
 elif auth_status is False:
     st.sidebar.error("Credenziali errate.")
-    
-# SEZIONE REGISTRAZIONE (Sempre visibile se non loggati)
+
 if not auth_status:
     with st.sidebar.expander("Non hai un account? Registrati"):
         try:
             if authenticator.register_user(location='main'):
-                st.success('Registrazione completata! Ora effettua il login.')
+                st.success('Registrato! Ora effettua il login.')
         except Exception as e:
             st.error(f"Errore: {e}")
 
-    # Pagina di Benvenuto
+    # Pagina di Benvenuto (Senza la scritta fan)
     st.markdown("""
         <div style="text-align:center; margin-top:150px;">
             <p class="anime-logo">MY ANIME NEWS</p>
-            <p style="color:#ffb7c5; font-size:1.8rem; letter-spacing:10px;">ACCESSO RISERVATO AI FAN</p>
-            <p style="opacity:0.6; font-size:1.3rem;">Accedi o registrati dal menu laterale per le Informazioni Fresche</p>
+            <p style="opacity:0.6; font-size:1.2rem;">Accedi o registrati dal menu laterale per sbloccare il database</p>
         </div>
     """, unsafe_allow_html=True)

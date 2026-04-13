@@ -119,6 +119,7 @@ if auth_status:
     st.markdown('<p class="fresche-title">INFORMAZIONI ANIME FRESCHE</p>', unsafe_allow_html=True)
 
     try:
+        # Endpoint corretto per Jikan API v4
         res = requests.get("https://jikan.moe").json().get('data', [])[:9]
         cols = st.columns(3)
         for i, anime in enumerate(res):
@@ -138,7 +139,16 @@ if auth_status:
 
 elif auth_status is False:
     st.sidebar.error("Credenziali respinte dal sistema.")
-else:
+
+# AGGIUNTA SOLO REGISTRAZIONE
+if not auth_status:
+    with st.sidebar.expander("Non hai un account? Registrati"):
+        try:
+            if authenticator.register_user(location='main'):
+                st.success('Registrazione completata! Effettua il login.')
+        except Exception as e:
+            st.error(f"Errore: {e}")
+
     st.markdown("""
         <div style="text-align:center; margin-top:150px;">
             <p class="anime-logo" style="font-size:7rem;">MY ANIME NEWS</p>

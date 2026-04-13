@@ -36,7 +36,13 @@ authenticator = stauth.Authenticate(
 
 # Interfaccia Login nella Sidebar
 st.sidebar.title("🔑 ACCESS_CONTROL")
-name, authentication_status, username = authenticator.login(location='sidebar')
+# Modifica questa riga: non assegnare variabili qui
+authenticator.login(location='sidebar')
+
+# Aggiungi queste righe subito sotto per recuperare i dati correttamente
+authentication_status = st.session_state.get('authentication_status')
+name = st.session_state.get('name')
+username = st.session_state.get('username')
 
 # Pulsante Registrazione nella Sidebar
 with st.sidebar.expander("Non hai un account? Registrati"):

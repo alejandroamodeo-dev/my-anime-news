@@ -33,6 +33,7 @@ if 'users' not in st.session_state:
 authenticator = stauth.Authenticate(
     st.session_state['users'], "anime_cookie", "signature_key", cookie_expiry_days=30
 )
+if authenticator.register_user('Registra Account'):
 
 # Interfaccia Login nella Sidebar
 st.sidebar.title("🔑 ACCESS_CONTROL")

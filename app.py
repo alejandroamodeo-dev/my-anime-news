@@ -6,18 +6,18 @@ import streamlit_authenticator as stauth
 st.set_page_config(page_title="My Anime News Pro", page_icon="🏮", layout="wide")
 
 # --- 2. STILE MARMO + NEBBIA ANIMATA ---
-st.markdown("""
-    <style>
-    /* SFONDO MARMO NERO */
-    .stApp {
-        background-color: #000000;
-        background-image: 
-            radial-gradient(at 0% 0%, rgba(255,255,255,0.05) 0px, transparent 50%),
-            radial-gradient(at 50% 0%, rgba(255,255,255,0.02) 0px, transparent 50%),
-            linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(0,0,0,1) 50%, rgba(255,255,255,0.03) 100%);
-        background-attachment: fixed;
-    }
-
+# TENTATIVO DI CARICAMENTO IMMAGINE SICURO
+    try:
+        # Proviamo a caricare l'immagine dal tuo GitHub
+        st.image("benvenuto.jpg", use_container_width=True)
+    except:
+        # Se il file benvenuto.jpg ha problemi, mostriamo un banner d'emergenza
+        st.markdown("""
+            <div style="background: linear-gradient(90deg, #ff4b4b, #d35400); padding: 60px; border-radius: 20px; text-align: center;">
+                <h1 style="color: white !important; text-shadow: 2px 2px 10px rgba(0,0,0,0.5);">🏮 MY ANIME NEWS</h1>
+                <p style="color: white; font-size: 20px;">Database Protetto - Identificarsi per procedere</p>
+            </div>
+        """, unsafe_allow_html=True)
     /* EFFETTO NEBBIA DINAMICA */
     @keyframes fogMove {
         from { background-position: 0 0; }

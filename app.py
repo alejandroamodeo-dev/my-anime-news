@@ -3,48 +3,57 @@ import streamlit as st
 import requests
 import streamlit_authenticator as stauth
 
-# --- 1. CONFIGURAZIONE E STILE TOTAL DARK + COLORI NEON ---
+# --- 1. CONFIGURAZIONE E STILE MANGA BACKGROUND ---
 st.set_page_config(page_title="My Anime News", page_icon="🏮", layout="wide")
 
 st.markdown("""
     <style>
-    /* Sfondo Nero Assoluto */
-    .stApp { background-color: #000000; color: #ffffff; }
-    
-    /* Sidebar Nero Profondo con bordo Neon */
-    [data-testid="stSidebar"] { 
-        background-color: #050505; 
-        border-right: 1px solid #ff4b4b; 
+    /* SFONDO MANGA INTERO */
+    .stApp {
+        background-image: url("https://wallpaperaccess.com");
+        background-size: cover;
+        background-attachment: fixed;
+        background-position: center;
+    }
+
+    /* Overlay nero per rendere leggibile il testo sopra lo sfondo manga */
+    .stApp > div {
+        background-color: rgba(0, 0, 0, 0.85);
     }
     
-    /* Card Anime con bordi colorati e ombra Neon */
+    /* SIDEBAR SCURA */
+    [data-testid="stSidebar"] { 
+        background-color: rgba(5, 5, 5, 0.95); 
+        border-right: 2px solid #ff4b4b; 
+    }
+    
+    /* LOGO GRANDE NELLA SIDEBAR */
+    .logo-text {
+        font-size: 45px !important;
+        font-weight: 900;
+        color: #ff4b4b !important;
+        text-align: center;
+        text-shadow: 2px 2px 15px rgba(255, 75, 75, 0.7);
+        margin-bottom: 30px;
+        line-height: 1;
+    }
+
+    /* CARD ANIME */
     .anime-card {
-        background-color: #0a0a0a;
+        background-color: rgba(20, 20, 20, 0.9);
         border-radius: 15px;
         padding: 15px;
-        border: 1px solid #333;
+        border: 1px solid #444;
         transition: 0.4s;
-        box-shadow: 0 4px 15px rgba(255, 75, 75, 0.1);
     }
     .anime-card:hover {
-        border-color: #00ff41; /* Verde Neon al passaggio */
-        box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+        border-color: #ff4b4b;
         transform: scale(1.02);
+        box-shadow: 0 0 25px rgba(255, 75, 75, 0.4);
     }
     
-    /* Titoli Colorati */
-    h1 { color: #ff4b4b !important; text-shadow: 0 0 10px #ff4b4b; font-family: 'Arial Black'; }
-    h2, h3, h4 { color: #00d4ff !important; }
-    
-    /* Bottoni Personalizzati */
-    div.stButton > button {
-        background-color: #ff4b4b;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        font-weight: bold;
-        box-shadow: 0 0 10px rgba(255, 75, 75, 0.4);
-    }
+    h1, h2, h3 { color: #ff4b4b !important; text-shadow: 0 0 10px #ff4b4b; }
+    h4 { color: #00d4ff !important; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -60,8 +69,8 @@ authenticator = stauth.Authenticate(
     st.session_state['users'], "anime_cookie_key", "signature_key", cookie_expiry_days=30
 )
 
-# Sidebar con Logo e Titolo
-st.sidebar.markdown("<h1 style='text-align: center; color: #ff4b4b;'>🏮 My Anime News</h1>", unsafe_allow_html=True)
+# LOGO GIGANTE NELLA SIDEBAR
+st.sidebar.markdown('<p class="logo-text">🏮<br>MY ANIME NEWS</p>', unsafe_allow_html=True)
 st.sidebar.write("---")
 
 # Gestione Login
@@ -71,10 +80,10 @@ name = st.session_state.get('name')
 
 # Registrazione
 if auth_status is None or auth_status is False:
-    with st.sidebar.expander("🆕 CREA ACCOUNT"):
+    with st.sidebar.expander("🆕 REGISTRATI"):
         try:
             if authenticator.register_user(location='sidebar'):
-                st.success('Account creato! Accedi sopra.')
+                st.success('Registrato! Accedi sopra.')
         except Exception as e:
             st.error(f"Errore: {e}")
 
@@ -83,11 +92,10 @@ if auth_status:
     st.sidebar.success(f"ONLINE: {name}")
     authenticator.logout('Logout', 'sidebar')
     
-    st.title("🏮 MY ANIME NEWS")
-    st.subheader("Database Aggiornato in Tempo Reale")
+    st.title("🏮 DATABASE AGGIORNATO")
     st.write("---")
 
-    categoria = st.selectbox("SCEGLI SETTORE:", ["IN CORSO", "PROSSIMAMENTE", "TOP RATED"])
+    categoria = st.selectbox("FILTRA CATEGORIA:", ["IN CORSO", "PROSSIMAMENTE", "TOP RATED"])
 
     @st.cache_data(ttl=3600)
     def get_data(mode):
@@ -105,12 +113,10 @@ if auth_status:
             return []
 
     data = get_data(categoria)
-    
     if not data:
-        st.warning("⚠️ API in sovraccarico. Ricarica la pagina tra 10 secondi.")
         data = []
 
-    # Griglia a 3 colonne
+    # Griglia
     cols = st.columns(3)
     for i, anime in enumerate(data[:12]):
         with cols[i % 3]:
@@ -121,13 +127,13 @@ if auth_status:
                     <p style="color:#00ff41; font-weight:bold;">Voto: {anime.get('score', '??')}</p>
                 </div>
             """, unsafe_allow_html=True)
-            st.link_button("LEGGI SCHEDA", anime['url'])
+            st.link_button("APRI SCHEDA", anime['url'])
             st.write("")
 
 elif auth_status is False:
-    st.sidebar.error('Dati errati.')
+    st.sidebar.error('Username/Password errati.')
 else:
-    # SCHERMATA DI BENVENUTO (Immagine Anime Iniziale)
-    st.title("🏮 MY ANIME NEWS")
-    st.image("https://alphacoders.com", caption="Benvenuto nel Database Protetto", use_container_width=True)
-    st.warning("EFFETTUA IL LOGIN PER CONSULTARE I FILE RISERVATI.")
+    # SCHERMATA BENVENUTO
+    st.title("🏮 BENVENUTO NEL PORTALE")
+    st.image("https://wallpapercave.com", use_container_width=True)
+    st.info("Esegui il login a sinistra per consultare il database manga/anime.")

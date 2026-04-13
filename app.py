@@ -43,6 +43,7 @@ authenticator.login(location='sidebar')
 authentication_status = st.session_state.get('authentication_status')
 name = st.session_state.get('name')
 username = st.session_state.get('username')
+if authenticator.register_user('Registra Account'):
 
 # Pulsante Registrazione nella Sidebar
 with st.sidebar.expander("Non hai un account? Registrati"):

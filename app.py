@@ -3,47 +3,50 @@ import streamlit as st
 import requests
 import streamlit_authenticator as stauth
 
-# --- 1. CONFIGURAZIONE PAGINA (Stile Crunchyroll/Bandai) ---
-st.set_page_config(page_title="Anime News Portal", page_icon="🧡", layout="wide")
+# --- 1. CONFIGURAZIONE E STILE TOTAL DARK ---
+st.set_page_config(page_title="Anime Portal Ultra Dark", page_icon="📺", layout="wide")
 
-# CSS per colori chiari e arancione vibrante
 st.markdown("""
     <style>
-    /* Sfondo bianco pulito */
-    .stApp { background-color: #FFFFFF; color: #23252b; }
+    /* Sfondo Nero Assoluto */
+    .stApp { background-color: #000000; color: #ffffff; }
     
-    /* Card delle notizie bianche con ombra e bordo arancione al passaggio */
+    /* Sidebar Nero Profondo */
+    [data-testid="stSidebar"] { background-color: #050505; border-right: 1px solid #1a1a1a; }
+    
+    /* Card Nero su Nero con bordo sottile */
     .anime-card {
-        background-color: #ffffff;
-        border-radius: 15px;
+        background-color: #0a0a0a;
+        border-radius: 10px;
         padding: 15px;
-        border: 1px solid #e0e0e0;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        transition: 0.3s;
-        margin-bottom: 20px;
+        border: 1px solid #1a1a1a;
+        transition: 0.4s;
     }
     .anime-card:hover {
-        border-color: #F47521;
-        transform: translateY(-5px);
-        box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+        border-color: #d35400; /* Arancione Bandai scuro */
+        background-color: #0f0f0f;
+        transform: scale(1.01);
     }
     
-    /* Titoli in Arancione Crunchyroll */
-    h1, h2, h3, h4 { 
-        color: #F47521 !important; 
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        font-weight: 700;
-    }
+    /* Titoli in Arancione Scuro */
+    h1, h2, h3, h4 { color: #d35400 !important; font-family: 'Arial Black', sans-serif; }
     
-    /* Bottoni Arancioni */
+    /* Testi descrittivi grigio cenere */
+    p, span, label { color: #aaaaaa !important; }
+
+    /* Bottoni stile Dark Mode */
     div.stButton > button {
-        background-color: #F47521;
+        background-color: #d35400;
         color: white;
-        border-radius: 25px;
         border: none;
-        width: 100%;
+        border-radius: 4px;
         font-weight: bold;
     }
+    
+    /* Nasconde elementi bianchi superflui */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
 
@@ -51,7 +54,7 @@ st.markdown("""
 if 'users' not in st.session_state:
     st.session_state['users'] = {
         "usernames": {
-            "admin": {"name": "Admin", "password": "123", "email": "admin@anime.com"}
+            "admin": {"name": "Admin", "password": "123", "email": "admin@anime.it"}
         }
     }
 
@@ -60,61 +63,57 @@ authenticator = stauth.Authenticate(
 )
 
 # Login nella Sidebar
-st.sidebar.title("🧡 ACCOUNT LOGIN")
+st.sidebar.title("🛂 LOGIN_SECURE")
 authenticator.login(location='sidebar')
 
 auth_status = st.session_state.get('authentication_status')
 name = st.session_state.get('name')
 
-# Registrazione (Mostrata solo se non loggato)
-if not auth_status:
-    with st.sidebar.expander("Non hai un account? Registrati"):
+# Registrazione
+if auth_status is None or auth_status is False:
+    with st.sidebar.expander("🆕 CREA ACCOUNT"):
         try:
             if authenticator.register_user(location='sidebar'):
-                st.success('Registrato! Ora puoi entrare.')
+                st.success('Account creato! Accedi sopra.')
         except Exception as e:
             st.error(f"Errore: {e}")
 
 # --- 3. LOGICA DI VISUALIZZAZIONE ---
 if auth_status:
-    st.sidebar.success(f"Bentornato, {name}!")
-    authenticator.logout('Esci dal portale', 'sidebar')
+    st.sidebar.success(f"ONLINE: {name}")
+    authenticator.logout('Esci', 'sidebar')
     
-    st.title("🏯 Ultime Notizie Anime")
-    st.write("Esplora le novità della stagione direttamente dal database Jikan.")
+    st.title("📺 DATABASE NOTIZIE ANIME")
+    st.write("---")
 
-    categoria = st.sidebar.selectbox("SELEZIONA CATEGORIA", ["IN CORSO", "PROSSIMAMENTE", "PIÙ VOTATI"])
+    categoria = st.selectbox("FILTRO_SETTORE", ["IN CORSO", "PROSSIMAMENTE", "TOP_RATED"])
 
     @st.cache_data
     def get_data(mode):
         urls = {
             "IN CORSO": "https://jikan.moe",
             "PROSSIMAMENTE": "https://jikan.moe",
-            "PIÙ VOTATI": "https://jikan.moe"
+            "TOP_RATED": "https://jikan.moe"
         }
         r = requests.get(urls[mode])
         return r.json().get('data', [])
 
     data = get_data(categoria)
 
-    # Griglia di notizie
     cols = st.columns(3)
-    for i, anime in enumerate(data[:15]):
+    for i, anime in enumerate(data[:12]):
         with cols[i % 3]:
             st.markdown(f"""
                 <div class="anime-card">
-                    <img src="{anime['images']['jpg']['large_image_url']}" style="width:100%; border-radius:10px; height:350px; object-fit:cover;">
-                    <h4 style="margin-top:15px; font-size:1.1em;">{anime['title'][:35]}...</h4>
-                    <p style="color:#666; font-size:0.9em;">⭐ Media Voto: {anime.get('score', 'N/A')}</p>
+                    <img src="{anime['images']['jpg']['large_image_url']}" style="width:100%; border-radius:5px; height:320px; object-fit:cover; filter: brightness(0.8);">
+                    <h4 style="margin-top:10px; font-size:16px;">{anime['title'][:30]}...</h4>
                 </div>
             """, unsafe_allow_html=True)
-            st.link_button("LEGGI DI PIÙ", anime['url'])
-            st.write("")
+            st.link_button("APRI_FILE", anime['url'])
 
 elif auth_status is False:
-    st.sidebar.error('Credenziali errate.')
-    st.title("⚠️ Accesso Negato")
+    st.sidebar.error('Dati errati.')
 else:
-    st.title("🏯 Benvenuto nel Portale Anime")
-    st.info("Esegui il login nella barra laterale per consultare le ultime notizie e il database.")
-    st.image("https://unsplash.com", caption="Accedi alla community")
+    st.title("🏯 ACCESSO PROTETTO")
+    st.image("https://wallpapercave.com", use_container_width=True)
+    st.warning("Inserisci le credenziali nel terminale a sinistra.")

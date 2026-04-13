@@ -3,7 +3,6 @@ import requests
 import streamlit_authenticator as stauth
 import json
 import os
-from datetime import datetime
 
 # --- 1. CONFIGURAZIONE PAGINA ---
 st.set_page_config(page_title="My Anime News Pro", page_icon="🏮", layout="wide")
@@ -11,7 +10,6 @@ st.set_page_config(page_title="My Anime News Pro", page_icon="🏮", layout="wid
 # --- 2. STILE ULTRA DARK + NEBBIA + MARMO ---
 st.markdown("""
     <style>
-    /* SFONDO MARMO NERO GENERATO VIA CODICE */
     .stApp {
         background-color: #000000;
         background-image: 
@@ -21,7 +19,6 @@ st.markdown("""
         background-attachment: fixed;
     }
 
-    /* ANIMAZIONE NEBBIA IN MOVIMENTO */
     @keyframes fogMove {
         from { background-position: 0 0; }
         to { background-position: 10000px 5000px; }
@@ -38,7 +35,6 @@ st.markdown("""
         animation: fogMove 250s linear infinite;
     }
 
-    /* CONTENITORE PRINCIPALE TRASPARENTE */
     [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
         background-color: transparent !important;
     }
@@ -53,7 +49,6 @@ st.markdown("""
         z-index: 1;
     }
 
-    /* LOGO GIGANTE PULSANTE NELLA SIDEBAR */
     @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
     .logo-text {
         font-size: 45px !important;
@@ -65,18 +60,11 @@ st.markdown("""
         line-height: 1.1;
     }
 
-    /* CARD ANIME */
     .anime-card {
         background-color: rgba(255, 255, 255, 0.05);
         border-radius: 15px;
         padding: 20px;
         border: 1px solid rgba(255, 75, 75, 0.2);
-        transition: 0.4s;
-    }
-    .anime-card:hover {
-        border-color: #ff4b4b;
-        transform: translateY(-10px);
-        box-shadow: 0 10px 30px rgba(255, 75, 75, 0.4);
     }
     
     h1, h2, h3 { color: #ff4b4b !important; }
@@ -115,46 +103,31 @@ if auth_status:
 
     try:
         r = requests.get(url_map[categoria])
-        if r.status_code == 200:
-            data = r.json().get('data', [])[:12]
-        else:
-            data = []
+        data = r.json().get('data', [])[:12] if r.status_code == 200 else []
             
         if data:
             cols = st.columns(3)
             for i, anime in enumerate(data):
                 with cols[i % 3]:
-                    st.markdown(f"""
-                        <div class="anime-card">
-                            <img src="{anime['images']['jpg']['large_image_url']}" style="width:100%; height:300px; object-fit:cover; border-radius:10px;">
-                            <h4 style="color:#ff4b4b; margin-top:10px;">{anime['title'][:30]}...</h4>
-                        </div>
-                    """, unsafe_allow_html=True)
+                    st.markdown(f'<div class="anime-card"><img src="{anime["images"]["jpg"]["large_image_url"]}" style="width:100%; height:300px; object-fit:cover; border-radius:10px;"><h4 style="color:#ff4b4b; margin-top:10px;">{anime["title"][:30]}...</h4></div>', unsafe_allow_html=True)
                     st.link_button("APRI FILE", anime['url'])
         else:
-            st.warning("⚠️ API in sovraccarico. Riprova tra poco.")
+            st.warning("⚠️ API in sovraccarico.")
     except:
-        st.error("Errore di connessione al database.")
+        st.error("Errore di connessione.")
 
 else:
-    # SCHERMATA DI BENVENUTO CON PROTEZIONE ERRORE IMMAGINE
     st.title("🏯 ACCESSO PROTETTO")
     
     try:
-        # Prova a caricare il tuo file benvenuto.jpg
         st.image("benvenuto.jpg", use_container_width=True)
     except:
-        # Se il file è corrotto o mancante, mostra questo banner
-        st.markdown("""
-            <div style="background: linear-gradient(90deg, #ff4b4b, #8e44ad); padding: 80px; border-radius: 20px; text-align: center;">
-                <h1 style="color: white !important; font-size: 50px;">MY ANIME NEWS</h1>
-                <p style="color: white; font-size: 22px;">Identificati per accedere al Database Nazionale</p>
-            </div>
-        """, unsafe_allow_html=True)
+        st.markdown('<div style="background: linear-gradient(90deg, #ff4b4b, #8e44ad); padding: 80px; border-radius: 20px; text-align: center;"><h1 style="color: white !important;">MY ANIME NEWS</h1></div>', unsafe_allow_html=True)
     
     with st.sidebar.expander("🆕 NON HAI UN ACCOUNT? REGISTRATI"):
         try:
-            if authenticator.register_user(location='sidebar'):
+            # FIX: Aggiunto pre-authorization=[] per risolvere l'errore
+            if authenticator.register_user(location='sidebar', pre_authorization=[]):
                 st.success('Registrato! Accedi sopra.')
         except Exception as e:
             st.error(f"Errore: {e}")

@@ -81,11 +81,11 @@ st.markdown("""
     </style>
 
     <div class="sakura-container">
-        <div class="petal" style="width:15px; height:15px; left:5%; animation-duration:8s; animation-delay:0s;"></div>
-        <div class="petal" style="width:20px; height:20px; left:20%; animation-duration:12s; animation-delay:2s;"></div>
-        <div class="petal" style="width:18px; height:18px; left:40%; animation-duration:10s; animation-delay:5s;"></div>
-        <div class="petal" style="width:22px; height:22px; left:65%; animation-duration:14s; animation-delay:1s;"></div>
-        <div class="petal" style="width:16px; height:16px; left:85%; animation-duration:11s; animation-delay:4s;"></div>
+        <div class="petal" style="width:20px; height:20px; left:5%; animation-duration:8s;"></div>
+        <div class="petal" style="width:28px; height:28px; left:20%; animation-duration:12s;"></div>
+        <div class="petal" style="width:22px; height:22px; left:45%; animation-duration:10s;"></div>
+        <div class="petal" style="width:30px; height:30px; left:70%; animation-duration:15s;"></div>
+        <div class="petal" style="width:20px; height:20px; left:90%; animation-duration:11s;"></div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -111,7 +111,7 @@ authenticator = stauth.Authenticate(
     st.session_state['config']['cookie']['expiry_days']
 )
 
-# --- 3. LOGICA APP ---
+# --- 3. LOGIN & REGISTRAZIONE ---
 name, auth_status, username = authenticator.login(location='sidebar')
 
 if auth_status:
@@ -123,31 +123,42 @@ if auth_status:
     st.markdown('<p class="fresche-title">INFORMAZIONI ANIME FRESCHE</p>', unsafe_allow_html=True)
 
     try:
-        res = requests.get("https://jikan.moe").json().get('data', [])[:9]
-        cols = st.columns(3)
-        for i, anime in enumerate(res):
-            with cols[i % 3]:
-                st.markdown(f"""
-                    <div class="fresh-card">
-                        <img src="{anime['images']['jpg']['large_image_url']}" style="width:100%; height:280px; object-fit:cover; border-radius:10px;">
-                        <div class="anime-title-text">{anime['title'][:30]}</div>
-                        <p class="anime-info-text">{anime.get('studios', [{'name':'N/D'}])[0]['name']} • {anime.get('episodes', '?')} Ep.</p>
-                    </div>
-                """, unsafe_allow_html=True)
-                with st.expander("SCROLL INFORMAZIONI"):
-                    st.write(f"**Trama:** {anime.get('synopsis', 'Info segrete...')[:250]}...")
-                    st.link_button("COLLEGAMENTO FONTE", anime['url'], use_container_width=True)
-    except:
-        st.error("Errore di sincronizzazione con il server Jikan.")
+        # Chiamata API v4 con controllo errori robusto
+        response = requests.get("https://jikan.moe", timeout=10)
+        res = response.json().get('data', [])[:9]
+        
+        if res:
+            cols = st.columns(3)
+            for i, anime in enumerate(res):
+                with cols[i % 3]:
+                    # Estrazione sicura del nome dello studio
+                    studios = anime.get('studios', [])
+                    studio_name = studios[0].get('name', 'N/D') if studios else 'N/D'
+                    
+                    st.markdown(f"""
+                        <div class="fresh-card">
+                            <img src="{anime['images']['jpg']['large_image_url']}" style="width:100%; height:280px; object-fit:cover; border-radius:10px;">
+                            <div class="anime-title-text">{anime['title'][:30]}</div>
+                            <p class="anime-info-text">{studio_name} • {anime.get('episodes', '?')} Ep.</p>
+                        </div>
+                    """, unsafe_allow_html=True)
+                    with st.expander("SCROLL INFORMAZIONI"):
+                        st.write(f"**Trama:** {anime.get('synopsis', 'Info segrete...')[:250]}...")
+                        st.link_button("COLLEGAMENTO FONTE", anime['url'], use_container_width=True)
+        else:
+            st.warning("🏮 Database in aggiornamento... Riprova tra un istante.")
+            
+    except Exception as e:
+        st.error(f"Errore di sincronizzazione: {e}")
 
 elif auth_status is False:
-    st.sidebar.error("Credenziali respinte dal sistema.")
+    st.sidebar.error("Credenziali respinte.")
 
-# --- AGGIUNTA REGISTRAZIONE CON FIX PARAMETRO ---
-if auth_status is None:
+# SEZIONE REGISTRAZIONE (FIXATA)
+if not auth_status:
     with st.sidebar.expander("Non hai un account? Registrati"):
         try:
-            # Cambiato in pre_authorization come richiesto dall'errore
+            # Parametro corretto pre_authorization per le ultime versioni
             if authenticator.register_user(location='main', pre_authorization=[]):
                 st.success('Registrazione completata! Effettua il login dal pannello laterale.')
         except Exception as e:
@@ -159,4 +170,3 @@ if auth_status is None:
             <p style="color:#ffb7c5; font-size:1.5rem; letter-spacing:12px;">ACCESSO RISERVATO</p>
             <p style="opacity:0.6; font-size:1.2rem;">Sblocca le Informazioni Fresche dal pannello laterale</p>
         </div>
-    """, unsafe_allow_html=True)

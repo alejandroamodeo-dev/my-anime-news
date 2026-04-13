@@ -10,7 +10,6 @@ st.markdown("""
     <style>
     @import url('https://googleapis.com');
 
-    /* BACKGROUND & ANIMAZIONE PETALI PIÙ GRANDI */
     .stApp {
         background: #050508;
         color: #f0f0f0;
@@ -123,7 +122,6 @@ if auth_status:
     st.markdown('<p class="fresche-title">INFORMAZIONI ANIME FRESCHE</p>', unsafe_allow_html=True)
 
     try:
-        # Chiamata API v4 con controllo errori robusto
         response = requests.get("https://jikan.moe", timeout=10)
         res = response.json().get('data', [])[:9]
         
@@ -131,7 +129,6 @@ if auth_status:
             cols = st.columns(3)
             for i, anime in enumerate(res):
                 with cols[i % 3]:
-                    # Estrazione sicura del nome dello studio
                     studios = anime.get('studios', [])
                     studio_name = studios[0].get('name', 'N/D') if studios else 'N/D'
                     
@@ -146,7 +143,7 @@ if auth_status:
                         st.write(f"**Trama:** {anime.get('synopsis', 'Info segrete...')[:250]}...")
                         st.link_button("COLLEGAMENTO FONTE", anime['url'], use_container_width=True)
         else:
-            st.warning("🏮 Database in aggiornamento... Riprova tra un istante.")
+            st.warning("🏮 Database in aggiornamento...")
             
     except Exception as e:
         st.error(f"Errore di sincronizzazione: {e}")
@@ -154,13 +151,11 @@ if auth_status:
 elif auth_status is False:
     st.sidebar.error("Credenziali respinte.")
 
-# SEZIONE REGISTRAZIONE (FIXATA)
 if not auth_status:
     with st.sidebar.expander("Non hai un account? Registrati"):
         try:
-            # Parametro corretto pre_authorization per le ultime versioni
             if authenticator.register_user(location='main', pre_authorization=[]):
-                st.success('Registrazione completata! Effettua il login dal pannello laterale.')
+                st.success('Registrazione completata! Effettua il login.')
         except Exception as e:
             st.error(f"Errore: {e}")
 
@@ -169,4 +164,3 @@ if not auth_status:
             <p class="anime-logo" style="font-size:7rem;">MY ANIME NEWS</p>
             <p style="color:#ffb7c5; font-size:1.5rem; letter-spacing:12px;">ACCESSO RISERVATO</p>
             <p style="opacity:0.6; font-size:1.2rem;">Sblocca le Informazioni Fresche dal pannello laterale</p>
-        </div>

@@ -1,104 +1,106 @@
 import streamlit as st
 import requests
 import streamlit_authenticator as stauth
-import json
-import os
-from datetime import datetime
 
-# --- 1. CONFIGURAZIONE E STILE (Sfondo Manga + Trasparenza) ---
-st.set_page_config(page_title="My Anime News", page_icon="🏮", layout="wide")
+# --- 1. CONFIGURAZIONE E STILE RE:ZERO (Viola & Bianco) ---
+st.set_page_config(page_title="Re:Zero Database", page_icon="🦋", layout="wide")
 
 st.markdown("""
     <style>
-    /* SFONDO MANGA (Vignette) */
+    /* SFONDO TEMATICO RE:ZERO */
     .stApp {
-        background-image: url("https://imgur.com");
+        background-image: url("https://imgur.com"); /* Sfondo Foresta di Ghiaccio/Emilia */
         background-size: cover;
         background-attachment: fixed;
-        background-position: center;
     }
 
-    /* TRASPARENZA TOTALE (Elimina il nero che copre lo sfondo) */
-    [data-testid="stAppViewContainer"], 
-    [data-testid="stHeader"], 
-    [data-testid="stMainViewContainer"] {
+    /* TRASPARENZA PER FAR VEDERE LO SFONDO */
+    [data-testid="stAppViewContainer"], [data-testid="stHeader"], [data-testid="stMainViewContainer"] {
         background-color: rgba(0, 0, 0, 0) !important;
     }
 
-    /* VELO SCURO centrato per rendere leggibile il testo */
+    /* VELO VIOLA SCURO PER LEGGIBILITÀ */
     .main .block-container {
-        background-color: rgba(0, 0, 0, 0.75);
+        background-color: rgba(30, 0, 50, 0.8);
         border-radius: 20px;
         padding: 40px;
-        margin-top: 20px;
-        border: 1px solid rgba(255, 75, 75, 0.3);
+        border: 2px solid #a020f0;
     }
     
-    /* LOGO NELLA SIDEBAR */
+    /* LOGO SIDEBAR */
     .logo-text {
-        font-size: 42px !important;
+        font-size: 38px !important;
         font-weight: 900;
-        color: #ff4b4b !important;
+        color: #a020f0 !important;
         text-align: center;
-        text-shadow: 2px 2px 10px #000;
+        text-shadow: 2px 2px 10px #fff;
     }
 
-    /* CARD ANIME */
+    /* CARD PERSONAGGI/NEWS */
     .anime-card {
-        background-color: rgba(255, 255, 255, 0.9);
+        background-color: white;
         border-radius: 15px;
         padding: 15px;
         color: #000 !important;
-        border: 2px solid #ff4b4b;
+        border: 2px solid #a020f0;
     }
+    
+    h1, h2, h3 { color: #ffffff !important; text-shadow: 2px 2px 5px #a020f0; }
     </style>
     """, unsafe_allow_html=True)
 
 # --- 2. SISTEMA ACCOUNT ---
 if 'users' not in st.session_state:
-    st.session_state['users'] = {"usernames": {"admin": {"name": "Admin", "password": "123", "email": "a@a.it"}}}
+    st.session_state['users'] = {"usernames": {"admin": {"name": "Subaru", "password": "123", "email": "lugnica@news.it"}}}
 
-authenticator = stauth.Authenticate(st.session_state['users'], "anime_pro_key", "sig_key", cookie_expiry_days=30)
-st.sidebar.markdown('<p class="logo-text">🏮<br>MY ANIME NEWS</p>', unsafe_allow_html=True)
+authenticator = stauth.Authenticate(st.session_state['users'], "rezero_key", "sig", cookie_expiry_days=30)
+
+st.sidebar.markdown('<p class="logo-text">🦋<br>RE:ZERO INFO</p>', unsafe_allow_html=True)
 authenticator.login(location='sidebar')
 
 auth_status = st.session_state.get('authentication_status')
 
-# --- 3. LOGICA SITO ---
+# --- 3. LOGICA VISUALIZZAZIONE ---
 if auth_status:
-    name = st.session_state.get('name')
-    st.sidebar.success(f"Online: {name}")
+    st.sidebar.success(f"Benvenuto, {st.session_state.get('name')}")
     authenticator.logout('Logout', 'sidebar')
     
-    st.title("🏮 DATABASE NEWS ATTIVO")
-    cat = st.selectbox("CATEGORIA:", ["IN CORSO", "TOP RATED"])
-    url = "https://jikan.moe" if cat == "IN CORSO" else "https://jikan.moe"
+    st.title("❄️ RE:ZERO KNOWLEDGE BASE")
     
-    try:
-        data = requests.get(url).json().get('data', [])[:9]
-        cols = st.columns(3)
-        for i, anime in enumerate(data):
-            with cols[i % 3]:
-                st.markdown(f'<div class="anime-card"><img src="{anime["images"]["jpg"]["large_image_url"]}" style="width:100%; height:300px; object-fit:cover; border-radius:10px;"><h4 style="color:black; margin-top:10px;">{anime["title"][:25]}</h4></div>', unsafe_allow_html=True)
-                st.link_button("SCOPRI DI PIÙ", anime['url'])
-    except:
-        st.error("Errore nel caricamento dei dati.")
+    # Sezione Info Personaggi o News specifiche
+    tab1, tab2 = st.tabs(["📚 PERSONAGGI", "📰 ULTIME NEWS"])
+    
+    with tab1:
+        st.subheader("Personaggi Principali")
+        # Qui facciamo una ricerca specifica per Re:Zero nell'API
+        try:
+            res = requests.get("https://jikan.moe").json().get('data', [])[:6]
+            cols = st.columns(3)
+            for i, item in enumerate(res):
+                char = item['character']
+                with cols[i % 3]:
+                    st.markdown(f"""
+                        <div class="anime-card">
+                            <img src="{char['images']['jpg']['image_url']}" style="width:100%; height:250px; object-fit:cover; border-radius:10px;">
+                            <h4 style="color:black; margin-top:10px;">{char['name']}</h4>
+                            <p style="color:purple;">Ruolo: {item['role']}</p>
+                        </div>
+                    """, unsafe_allow_html=True)
+        except:
+            st.error("Errore nel caricamento dei personaggi.")
+
+    with tab2:
+        st.subheader("Novità sulla serie")
+        st.info("La Stagione 3 è attualmente in produzione/trasmissione! Resta sintonizzato.")
 
 else:
-    # --- SCHERMATA DI BENVENUTO CON LA TUA IMMAGINE ---
-    st.title("🏯 ACCEDI AL PORTALE")
-    
-    # Inserimento dell'immagine che hai inviato
-    st.image("https://ibb.co", 
-             caption="Benvenuto nel Database My Anime News", 
-             use_container_width=True)
+    # SCHERMATA DI BENVENUTO (La tua immagine con i personaggi)
+    st.title("🏯 ACCEDI AL PORTALE DI LUGNICA")
+    st.image("https://ibb.co", use_container_width=True)
     
     with st.sidebar.expander("🆕 REGISTRATI"):
         try:
-            if authenticator.register_user(location='sidebar', key='reg_form'):
-                st.success('Registrato! Accedi sopra.')
-        except Exception as e: st.error(f"Errore: {e}")
-    
-    st.warning("Esegui il login nella barra laterale per entrare nel sistema.")
-
-   
+            if authenticator.register_user(location='sidebar'):
+                st.success('Registrato con successo!')
+        except Exception as e:
+            st.error(f"Errore: {e}")

@@ -18,9 +18,10 @@ st.set_page_config(page_title="My Anime News Pro", page_icon="🏮", layout="wid
 st.markdown(f"""
     <style>
     @keyframes slowZoom {{
-        0% {{ transform: scale(1); }}
-        50% {{ transform: scale(1.1); }}
-        100% {{ transform: scale(1); }}
+        0% {{ transform: scale(1.0); }}
+        50% {{ transform: scale(1.03); }} /* Ridotto dal 1.1 al 1.03 (solo 3% di zoom) */
+        100% {{ transform: scale(1.0); }}
+    }}
     }}
     
     .stApp {{

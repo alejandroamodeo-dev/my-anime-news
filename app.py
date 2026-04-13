@@ -147,7 +147,7 @@ elif auth_status is False:
 if auth_status is None:
     with st.sidebar.expander("Non hai un account? Registrati"):
         try:
-            # Cambiato pre_authorized in pre_authorization come richiesto dall'errore
+            # Cambiato in pre_authorization come richiesto dall'errore
             if authenticator.register_user(location='main', pre_authorization=[]):
                 st.success('Registrazione completata! Effettua il login dal pannello laterale.')
         except Exception as e:

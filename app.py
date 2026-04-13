@@ -10,7 +10,7 @@ st.markdown("""
     <style>
     /* SFONDO MANGA BEN VISIBILE */
     .stApp {
-        background-image: url("https://wallpaperaccess.com");
+        background-image:<img src="https://i.pinimg.com/736x/d2/2d/ad/d22dadaff14ccce4cd20d23cac07cf4c.jpg" alt="10 Latest All Anime Wallpaper Hd FULL HD 1920×1080 For PC Background"/>
         background-size: cover;
         background-attachment: fixed;
         background-position: center;

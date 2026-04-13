@@ -3,12 +3,12 @@ import streamlit as st
 import requests
 import streamlit_authenticator as stauth
 
-# --- 1. CONFIGURAZIONE E STILE MANGA BACKGROUND ---
+# --- 1. CONFIGURAZIONE E STILE MANGA VISIBILE ---
 st.set_page_config(page_title="My Anime News", page_icon="🏮", layout="wide")
 
 st.markdown("""
     <style>
-    /* SFONDO MANGA INTERO */
+    /* SFONDO MANGA BEN VISIBILE */
     .stApp {
         background-image: url("https://wallpaperaccess.com");
         background-size: cover;
@@ -16,124 +16,85 @@ st.markdown("""
         background-position: center;
     }
 
-    /* Overlay nero per rendere leggibile il testo sopra lo sfondo manga */
-    .stApp > div {
-        background-color: rgba(0, 0, 0, 0.85);
+    /* Rende il contenuto leggibile ma lascia vedere lo sfondo */
+    .main {
+        background-color: rgba(0, 0, 0, 0.4); /* Molto più trasparente */
     }
     
-    /* SIDEBAR SCURA */
+    /* SIDEBAR */
     [data-testid="stSidebar"] { 
-        background-color: rgba(5, 5, 5, 0.95); 
+        background-color: rgba(0, 0, 0, 0.8) !important; 
         border-right: 2px solid #ff4b4b; 
     }
     
-    /* LOGO GRANDE NELLA SIDEBAR */
+    /* LOGO GIGANTE */
     .logo-text {
         font-size: 45px !important;
         font-weight: 900;
         color: #ff4b4b !important;
         text-align: center;
-        text-shadow: 2px 2px 15px rgba(255, 75, 75, 0.7);
+        text-shadow: 2px 2px 10px #000;
         margin-bottom: 30px;
-        line-height: 1;
     }
 
     /* CARD ANIME */
     .anime-card {
-        background-color: rgba(20, 20, 20, 0.9);
+        background-color: rgba(255, 255, 255, 0.9); /* Card bianche per contrasto con sfondo manga */
         border-radius: 15px;
         padding: 15px;
-        border: 1px solid #444;
-        transition: 0.4s;
-    }
-    .anime-card:hover {
-        border-color: #ff4b4b;
-        transform: scale(1.02);
-        box-shadow: 0 0 25px rgba(255, 75, 75, 0.4);
+        color: #000;
+        border: 2px solid #ff4b4b;
+        box-shadow: 5px 5px 15px rgba(0,0,0,0.3);
     }
     
-    h1, h2, h3 { color: #ff4b4b !important; text-shadow: 0 0 10px #ff4b4b; }
-    h4 { color: #00d4ff !important; }
+    h1, h2, h3 { color: #ff4b4b !important; text-shadow: 2px 2px 5px #000; }
     </style>
     """, unsafe_allow_html=True)
 
 # --- 2. SISTEMA ACCOUNT ---
 if 'users' not in st.session_state:
-    st.session_state['users'] = {
-        "usernames": {
-            "admin": {"name": "Admin", "password": "123", "email": "admin@anime.it"}
-        }
-    }
+    st.session_state['users'] = {"usernames": {"admin": {"name": "Admin", "password": "123", "email": "a@a.it"}}}
 
-authenticator = stauth.Authenticate(
-    st.session_state['users'], "anime_cookie_key", "signature_key", cookie_expiry_days=30
-)
+authenticator = stauth.Authenticate(st.session_state['users'], "key", "sig", cookie_expiry_days=30)
 
-# LOGO GIGANTE NELLA SIDEBAR
+# LOGO NELLA SIDEBAR
 st.sidebar.markdown('<p class="logo-text">🏮<br>MY ANIME NEWS</p>', unsafe_allow_html=True)
-st.sidebar.write("---")
-
-# Gestione Login
 authenticator.login(location='sidebar')
-auth_status = st.session_state.get('authentication_status')
-name = st.session_state.get('name')
 
-# Registrazione
-if auth_status is None or auth_status is False:
-    with st.sidebar.expander("🆕 REGISTRATI"):
-        try:
-            if authenticator.register_user(location='sidebar'):
-                st.success('Registrato! Accedi sopra.')
-        except Exception as e:
-            st.error(f"Errore: {e}")
+auth_status = st.session_state.get('authentication_status')
 
 # --- 3. LOGICA DI VISUALIZZAZIONE ---
 if auth_status:
-    st.sidebar.success(f"ONLINE: {name}")
+    st.sidebar.success(f"Online: {st.session_state.get('name')}")
     authenticator.logout('Logout', 'sidebar')
     
-    st.title("🏮 DATABASE AGGIORNATO")
-    st.write("---")
-
-    categoria = st.selectbox("FILTRA CATEGORIA:", ["IN CORSO", "PROSSIMAMENTE", "TOP RATED"])
+    st.title("🏮 DATABASE ATTIVO")
+    
+    categoria = st.selectbox("CATEGORIA:", ["IN CORSO", "PROSSIMAMENTE", "TOP RATED"])
 
     @st.cache_data(ttl=3600)
     def get_data(mode):
-        urls = {
-            "IN CORSO": "https://jikan.moe",
-            "PROSSIMAMENTE": "https://jikan.moe",
-            "TOP RATED": "https://jikan.moe"
-        }
+        urls = {"IN CORSO": "https://jikan.moe", "PROSSIMAMENTE": "https://jikan.moe", "TOP RATED": "https://jikan.moe"}
         try:
             r = requests.get(urls[mode])
-            if r.status_code == 200:
-                return r.json().get('data', [])
-            return []
-        except:
-            return []
+            return r.json().get('data', []) if r.status_code == 200 else []
+        except: return []
 
     data = get_data(categoria)
-    if not data:
-        data = []
 
-    # Griglia
     cols = st.columns(3)
     for i, anime in enumerate(data[:12]):
         with cols[i % 3]:
             st.markdown(f"""
                 <div class="anime-card">
-                    <img src="{anime['images']['jpg']['large_image_url']}" style="width:100%; border-radius:10px; height:350px; object-fit:cover;">
-                    <h4 style="margin-top:15px;">{anime['title'][:30]}...</h4>
-                    <p style="color:#00ff41; font-weight:bold;">Voto: {anime.get('score', '??')}</p>
+                    <img src="{anime['images']['jpg']['large_image_url']}" style="width:100%; border-radius:10px; height:300px; object-fit:cover;">
+                    <h4 style="color:#000; margin-top:10px;">{anime['title'][:30]}</h4>
                 </div>
             """, unsafe_allow_html=True)
-            st.link_button("APRI SCHEDA", anime['url'])
-            st.write("")
+            st.link_button("DETTAGLI", anime['url'])
 
-elif auth_status is False:
-    st.sidebar.error('Username/Password errati.')
 else:
-    # SCHERMATA BENVENUTO
-    st.title("🏮 BENVENUTO NEL PORTALE")
-    st.image("https://wallpapercave.com", use_container_width=True)
-    st.info("Esegui il login a sinistra per consultare il database manga/anime.")
+    # IMMAGINE ANIME INIZIALE (Grande e chiara)
+    st.title("🏯 ACCEDI AL PORTALE")
+    st.image("https://alphacoders.com", use_container_width=True)
+    st.warning("Esegui il login nella barra laterale per vedere i contenuti.

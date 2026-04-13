@@ -1,0 +1,21 @@
+python
+import streamlit as st
+import requests
+
+st.set_page_config(page_title="Anime News", page_icon="🏯")
+st.title("🏯 Ultime Notizie Anime")
+
+# Recupero dati dall'API Jikan
+response = requests.get("https://jikan.moe")
+news = response.json().get('data', [])
+
+for anime in news[:15]:
+    with st.container():
+        col1, col2 = st.columns([1, 2])
+        with col1:
+            st.image(anime['images']['jpg']['image_url'])
+        with col2:
+            st.subheader(anime['title'])
+            st.write(f"**Voto:** {anime.get('score', 'N/A')}")
+            st.write(f"[Leggi di più su MyAnimeList]({anime['url']})")
+        st.divider()

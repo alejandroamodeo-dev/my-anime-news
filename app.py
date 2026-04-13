@@ -3,82 +3,84 @@ import requests
 import streamlit_authenticator as stauth
 from datetime import datetime
 
-# --- 1. CONFIGURAZIONE & STILE BRANDIZZATO "MY ANIME NEWS" ---
-st.set_page_config(page_title="My Anime News - Portale Ufficiale", page_icon="🏮", layout="wide")
+# --- 1. CONFIGURAZIONE & STILE "ANIME TECH" ---
+st.set_page_config(page_title="My Anime News - Fresh Info", page_icon="🏮", layout="wide")
 
 st.markdown("""
     <style>
     @import url('https://googleapis.com');
 
+    /* BACKGROUND STILE NOTTE A TOKYO */
     .stApp {
-        background-color: #050505;
-        background-image: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #050505 100%);
-        color: #e0e0e0;
-        font-family: 'Space Grotesk', sans-serif;
+        background: #020205;
+        background-image: 
+            linear-gradient(rgba(255, 75, 75, 0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 75, 75, 0.05) 1px, transparent 1px);
+        background-size: 30px 30px;
+        color: #f0f0f0;
+        font-family: 'Rajdhani', sans-serif;
     }
 
-    /* LOGO PRINCIPALE MY ANIME NEWS */
-    .brand-header {
-        font-family: 'Syncopate', sans-serif;
-        font-size: 3.5rem;
+    /* LOGO ANIME STYLE */
+    .anime-logo {
+        font-family: 'Bangers', cursive;
+        font-size: 5rem;
         text-align: center;
-        background: linear-gradient(90deg, #ff4b4b, #ff8080);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 10px;
-        text-shadow: 0 0 25px rgba(255, 75, 75, 0.4);
+        color: #ff4b4b;
+        text-shadow: 4px 4px 0px #5a0000, 0 0 20px rgba(255, 75, 75, 0.6);
+        margin-bottom: 0px;
+        letter-spacing: 2px;
     }
-    
-    .brand-subtitle {
+
+    .japanese-text {
+        font-family: 'Noto Sans JP', sans-serif;
         text-align: center;
-        letter-spacing: 8px;
-        color: #888;
-        font-size: 0.9rem;
-        margin-bottom: 50px;
+        font-size: 1.2rem;
+        color: rgba(255, 255, 255, 0.3);
+        margin-bottom: 40px;
         text-transform: uppercase;
     }
 
-    /* NEWS CARD PERSONALIZZATA */
-    .news-card {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 20px;
+    /* CARD "FRESCHE" CON BORDO NEON */
+    .fresh-card {
+        background: rgba(15, 15, 25, 0.9);
+        border: 2px solid #222;
+        border-radius: 0px 20px 0px 20px; /* Taglio stile anime */
         padding: 20px;
-        transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        margin-bottom: 20px;
-        height: 100%;
-        backdrop-filter: blur(12px);
+        transition: 0.4s ease;
+        position: relative;
+        overflow: hidden;
     }
 
-    .news-card:hover {
-        background: rgba(255, 255, 255, 0.07);
+    .fresh-card:hover {
         border-color: #ff4b4b;
-        transform: translateY(-8px);
-        box-shadow: 0 15px 45px rgba(255, 75, 75, 0.25);
+        box-shadow: 0 0 25px rgba(255, 75, 75, 0.4);
+        transform: skewX(-2deg); /* Effetto dinamico */
     }
 
-    .news-tag {
+    .fresh-tag {
         background: #ff4b4b;
-        color: white;
-        padding: 5px 15px;
-        border-radius: 50px;
-        font-size: 0.65rem;
-        font-weight: 800;
+        color: black;
+        padding: 2px 15px;
+        font-weight: 900;
+        font-family: 'Bangers', cursive;
+        font-size: 1rem;
+        clip-path: polygon(0 0, 100% 0, 85% 100%, 0% 100%);
+    }
+
+    .anime-title {
+        font-family: 'Rajdhani', sans-serif;
+        font-weight: 700;
+        font-size: 1.4rem;
+        color: #fff;
+        margin-top: 15px;
         text-transform: uppercase;
     }
 
-    .news-title {
-        font-size: 1.3rem;
-        font-weight: 700;
-        margin: 15px 0;
-        color: #fff;
-        line-height: 1.2;
-    }
-
-    /* SIDEBAR */
+    /* SIDEBAR STYLE */
     [data-testid="stSidebar"] {
-        background-color: #0c0c0e !important;
-        border-right: 1px solid #222;
+        background: linear-gradient(180deg, #100000 0%, #050505 100%) !important;
+        border-right: 2px solid #ff4b4b;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -86,7 +88,7 @@ st.markdown("""
 # --- 2. SISTEMA ACCOUNT ---
 if 'config' not in st.session_state:
     st.session_state['config'] = {
-        "credentials": {"usernames": {"admin": {"name": "Redattore MyAnime", "password": "$2b$12$K7T6U/f0XpM9kPzN8Ff1.O6R5T7n5.N0v4P0E7S6Z.k6W/F7f5W2K", "email": "news@myanimenews.it"}}},
+        "credentials": {"usernames": {"admin": {"name": "Otaku Admin", "password": "$2b$12$K7T6U/f0XpM9kPzN8Ff1.O6R5T7n5.N0v4P0E7S6Z.k6W/F7f5W2K", "email": "info@myanimenews.it"}}},
         "cookie": {"key": "man_key", "name": "man_cookie", "expiry_days": 30}
     }
 
@@ -97,65 +99,66 @@ authenticator = stauth.Authenticate(
     st.session_state['config']['cookie']['expiry_days']
 )
 
-# --- 3. FETCH NEWS ---
+# --- 3. FETCH INFO ANIME ---
 @st.cache_data(ttl=300)
-def get_live_news():
+def get_fresh_info():
     try:
-        # Recupera i top anime per simulare le news più calde
         r = requests.get("https://jikan.moe")
         return r.json().get('data', [])[:12]
     except:
         return []
 
-# --- 4. LOGICA APP ---
+# --- 4. INTERFACCIA ---
 name, auth_status, username = authenticator.login(location='sidebar')
 
 if auth_status:
-    # Sidebar Brandizzata
-    st.sidebar.markdown("<h2 style='color:#ff4b4b; text-align:center;'>🏮 MAN</h2>", unsafe_allow_html=True)
-    st.sidebar.info(f"Redattore: **{name}**")
-    authenticator.logout('Chiudi Sessione', 'sidebar')
+    # Sidebar
+    st.sidebar.markdown("<h1 style='color:#ff4b4b; text-align:center;'>🏮</h1>", unsafe_allow_html=True)
+    st.sidebar.title("MENU UTENTE")
+    st.sidebar.write(f"Shinobi Online: **{name}**")
+    authenticator.logout('Log Out', 'sidebar')
 
-    # Header Principale
-    st.markdown('<h1 class="brand-header">MY ANIME NEWS</h1>', unsafe_allow_html=True)
-    st.markdown('<p class="brand-subtitle">Il tuo radar quotidiano sul mondo dell\'animazione</p>', unsafe_allow_html=True)
+    # Header
+    st.markdown('<p class="anime-logo">MY ANIME NEWS</p>', unsafe_allow_html=True)
+    st.markdown('<p class="japanese-text">最新のアニメ情報 — INFORMAZIONI ANIME FRESCHE</p>', unsafe_allow_html=True)
     
-    st.divider()
-
-    news_list = get_live_news()
-
-    if news_list:
+    # Grid News
+    data = get_fresh_info()
+    
+    if data:
         cols = st.columns(3)
-        for idx, item in enumerate(news_list):
+        for idx, anime in enumerate(data):
             with cols[idx % 3]:
                 st.markdown(f"""
-                    <div class="news-card">
-                        <span class="news-tag">MY ANIME NEWS • ESCLUSIVA</span>
-                        <span style="float:right; color:#666; font-size:0.8rem;">{datetime.now().strftime('%H:%M')}</span>
-                        <img src="{item['images']['jpg']['large_image_url']}" style="width:100%; height:200px; object-fit:cover; border-radius:12px; margin: 15px 0;">
-                        <div class="news-title">{item['title']}</div>
-                        <p style="color:#888; font-size:0.9rem;">Ultimi dettagli sulla produzione: lo studio conferma il rilascio di nuovi materiali promozionali.</p>
+                    <div class="fresh-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span class="fresh-tag">FRESCA</span>
+                            <span style="color:#ff4b4b; font-weight:bold;">#{idx+1}</span>
+                        </div>
+                        <img src="{anime['images']['jpg']['large_image_url']}" style="width:100%; height:250px; object-fit:cover; border-radius:5px; margin-top:10px; border-bottom: 3px solid #ff4b4b;">
+                        <div class="anime-title">{anime['title'][:35]}</div>
+                        <p style="color:#888; font-size:0.85rem;">Status: {anime.get('status', 'In corso')}<br>Studio: {anime.get('studios', [{'name': 'N/D'}])[0]['name']}</p>
                     </div>
                 """, unsafe_allow_html=True)
                 
-                with st.expander("LEGGI ARTICOLO COMPLETO"):
-                    st.write(f"**Titolo originale:** {item.get('title_japanese', 'N/D')}")
-                    st.write("**Report:** La redazione di My Anime News ha analizzato i dati di ascolto e le recensioni critiche. La serie si posiziona tra le più attese della stagione.")
-                    st.link_button("FONTE ORIGINALE", item['url'], use_container_width=True)
+                with st.expander("SCOPRI DI PIÙ"):
+                    st.write(f"**Trama:** {anime.get('synopsis', 'Info in arrivo...')[:300]}...")
+                    st.link_button("VEDI TRAILER", anime['url'], use_container_width=True)
     else:
-        st.warning("📡 Collegamento ai server My Anime News in corso...")
+        st.error("⚠️ Errore nel caricamento delle info fresche. Riprova.")
 
 elif auth_status is False:
-    st.sidebar.error("Credenziali My Anime News non valide.")
+    st.sidebar.error("Chiave d'accesso errata.")
 else:
-    # Welcome Page "My Anime News"
+    # Landing stile Anime
     st.markdown("""
-        <div style="text-align:center; margin-top:100px;">
-            <h1 class="brand-header" style="font-size:5rem;">MY ANIME NEWS</h1>
-            <p style="font-size:1.4rem; letter-spacing:12px; color:#555;">GATEWAY ACCESSO REDAZIONE</p>
-            <div style="background:rgba(255,75,75,0.05); padding:30px; border-radius:20px; border:1px solid rgba(255,75,75,0.3); display:inline-block; margin-top:40px;">
-                <p style="margin:0; font-size:1.1rem;">Inserire le credenziali nella barra laterale</p>
-                <code style="color:#ff4b4b; background:transparent;">admin | 123</code>
+        <div style="text-align:center; margin-top:80px;">
+            <p class="anime-logo" style="font-size:6rem;">MY ANIME NEWS</p>
+            <p class="japanese-text" style="letter-spacing:15px;">LOGIN REQUIRED</p>
+            <div style="background: rgba(255,75,75,0.1); border: 2px dashed #ff4b4b; padding: 40px; display: inline-block; border-radius: 20px;">
+                <h3 style="color:white; margin:0;">ACCEDI PER LE INFO FRESCHE</h3>
+                <p style="color:#666;">Usa le credenziali nel menu a sinistra</p>
+                <code style="background:white; color:black; padding:5px 10px; border-radius:5px;">admin | 123</code>
             </div>
         </div>
     """, unsafe_allow_html=True)

@@ -32,17 +32,15 @@ st.markdown("""
         animation: fall linear infinite;
     }
 
-    /* Aumento dimensione petali */
     @keyframes fall {
         0% { transform: translateY(-100px) rotate(0deg); opacity: 0; }
         10% { opacity: 0.8; }
         100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
     }
 
-    /* LOGO & TITOLI INGRANDITI */
     .anime-logo {
         font-family: 'Bangers', cursive;
-        font-size: 6.5rem; /* Più grande */
+        font-size: 6.5rem;
         text-align: center;
         color: #ff4b4b;
         text-shadow: 0 0 30px rgba(255, 75, 75, 0.6);
@@ -51,7 +49,7 @@ st.markdown("""
 
     .fresche-title {
         text-align: center;
-        font-size: 2rem; /* Più grande */
+        font-size: 2rem;
         color: #ffb7c5;
         font-weight: 700;
         letter-spacing: 8px;
@@ -60,7 +58,6 @@ st.markdown("""
         text-shadow: 0 0 10px rgba(255, 183, 197, 0.4);
     }
 
-    /* CARD DESIGN & TEXT */
     .fresh-card {
         background: rgba(20, 20, 30, 0.85);
         border: 2px solid rgba(255, 183, 197, 0.2);
@@ -71,19 +68,18 @@ st.markdown("""
     }
     
     .anime-title-text {
-        font-size: 1.6rem; /* Più grande */
+        font-size: 1.6rem;
         font-weight: 700;
         color: #ff4b4b;
         margin-top: 10px;
     }
 
     .anime-info-text {
-        font-size: 1.1rem; /* Più grande */
+        font-size: 1.1rem;
         color: #ccc;
     }
     </style>
 
-    <!-- Petali Ingranditi -->
     <div class="sakura-container">
         <div class="petal" style="width:15px; height:15px; left:5%; animation-duration:8s; animation-delay:0s;"></div>
         <div class="petal" style="width:20px; height:20px; left:20%; animation-duration:12s; animation-delay:2s;"></div>
@@ -96,7 +92,15 @@ st.markdown("""
 # --- 2. SISTEMA ACCOUNT ---
 if 'config' not in st.session_state:
     st.session_state['config'] = {
-        "credentials": {"usernames": {"admin": {"name": "Redattore Capo", "password": "$2b$12$K7T6U/f0XpM9kPzN8Ff1.O6R5T7n5.N0v4P0E7S6Z.k6W/F7f5W2K", "email": "admin@myanimenews.it"}}},
+        "credentials": {
+            "usernames": {
+                "admin": {
+                    "name": "Redattore Capo", 
+                    "password": "$2b$12$K7T6U/f0XpM9kPzN8Ff1.O6R5T7n5.N0v4P0E7S6Z.k6W/F7f5W2K", 
+                    "email": "admin@myanimenews.it"
+                }
+            }
+        },
         "cookie": {"key": "sakura_pro_key", "name": "sakura_cookie", "expiry_days": 30}
     }
 
@@ -119,7 +123,6 @@ if auth_status:
     st.markdown('<p class="fresche-title">INFORMAZIONI ANIME FRESCHE</p>', unsafe_allow_html=True)
 
     try:
-        # Endpoint corretto per Jikan API v4
         res = requests.get("https://jikan.moe").json().get('data', [])[:9]
         cols = st.columns(3)
         for i, anime in enumerate(res):
@@ -140,12 +143,13 @@ if auth_status:
 elif auth_status is False:
     st.sidebar.error("Credenziali respinte dal sistema.")
 
-# AGGIUNTA SOLO REGISTRAZIONE
-if not auth_status:
+# --- AGGIUNTA REGISTRAZIONE CON FIX PRE-AUTHORIZATION ---
+if auth_status is None:
     with st.sidebar.expander("Non hai un account? Registrati"):
         try:
-            if authenticator.register_user(location='main'):
-                st.success('Registrazione completata! Effettua il login.')
+            # pre_authorized=[] risolve l'errore segnalato
+            if authenticator.register_user(location='main', pre_authorized=[]):
+                st.success('Registrazione completata! Effettua il login dal pannello laterale.')
         except Exception as e:
             st.error(f"Errore: {e}")
 

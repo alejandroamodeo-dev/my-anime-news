@@ -7,18 +7,20 @@ import os
 # --- 1. CONFIGURAZIONE PAGINA ---
 st.set_page_config(page_title="My Anime News Pro", page_icon="🏮", layout="wide")
 
-# --- 2. STILE ULTRA DARK + NEBBIA + MARMO ---
+# --- 2. STILE CHIARO/MODERNO (GRIGIO ANTRACITE + NEBBIA) ---
 st.markdown("""
     <style>
+    /* SFONDO GRIGIO ANTRACITE (PIÙ CHIARO DEL NERO) */
     .stApp {
-        background-color: #000000;
+        background-color: #1e2124; /* Grigio scuro ma non nero */
         background-image: 
-            radial-gradient(at 0% 0%, rgba(255,255,255,0.05) 0px, transparent 50%),
-            radial-gradient(at 50% 0%, rgba(255,255,255,0.02) 0px, transparent 50%),
-            linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(0,0,0,1) 50%, rgba(255,255,255,0.03) 100%);
+            radial-gradient(at 0% 0%, rgba(255,255,255,0.1) 0px, transparent 50%),
+            radial-gradient(at 50% 100%, rgba(255,75,75,0.05) 0px, transparent 50%),
+            linear-gradient(180deg, #1e2124 0%, #2f3136 100%);
         background-attachment: fixed;
     }
 
+    /* NEBBIA PIÙ VISIBILE */
     @keyframes fogMove {
         from { background-position: 0 0; }
         to { background-position: 10000px 5000px; }
@@ -29,45 +31,51 @@ st.markdown("""
         position: fixed;
         top: 0; left: 0; width: 100%; height: 100%;
         background: url('https://transparenttextures.com');
-        opacity: 0.25;
+        opacity: 0.4; /* Aumentata opacità per vederla meglio */
         z-index: 0;
         pointer-events: none;
-        animation: fogMove 250s linear infinite;
+        animation: fogMove 180s linear infinite;
     }
 
+    /* CONTENITORE CENTRALE CON VETRO SFOCATO */
     [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
         background-color: transparent !important;
     }
 
     .main .block-container {
-        background-color: rgba(0, 0, 0, 0.75);
-        backdrop-filter: blur(10px);
+        background-color: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(15px); /* Effetto vetro più forte */
         border-radius: 25px;
         padding: 40px;
-        border: 1px solid rgba(255, 75, 75, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         position: relative;
         z-index: 1;
     }
 
-    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+    /* LOGO SIDEBAR */
     .logo-text {
-        font-size: 45px !important;
+        font-size: 42px !important;
         font-weight: 900;
         color: #ff4b4b !important;
         text-align: center;
-        text-shadow: 0 0 20px #ff4b4b;
-        animation: pulse 2s infinite;
-        line-height: 1.1;
+        text-shadow: 2px 2px 15px rgba(255, 75, 75, 0.3);
     }
 
+    /* CARD ANIME PIÙ CHIARE */
     .anime-card {
-        background-color: rgba(255, 255, 255, 0.05);
+        background-color: rgba(255, 255, 255, 0.1);
         border-radius: 15px;
         padding: 20px;
-        border: 1px solid rgba(255, 75, 75, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: 0.3s;
+    }
+    .anime-card:hover {
+        background-color: rgba(255, 255, 255, 0.15);
+        border-color: #ff4b4b;
+        transform: translateY(-5px);
     }
     
-    h1, h2, h3 { color: #ff4b4b !important; }
+    h1, h2, h3 { color: #ffffff !important; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -80,20 +88,19 @@ if 'users' not in st.session_state:
     }
 
 authenticator = stauth.Authenticate(st.session_state['users'], "anime_pro_v3", "signature", cookie_expiry_days=30)
-
 st.sidebar.markdown('<p class="logo-text">🏮<br>MY ANIME NEWS</p>', unsafe_allow_html=True)
 authenticator.login(location='sidebar')
 
 auth_status = st.session_state.get('authentication_status')
 name = st.session_state.get('name')
 
-# --- 4. LOGICA DI VISUALIZZAZIONE ---
+# --- 4. LOGICA VISUALIZZAZIONE ---
 if auth_status:
-    st.sidebar.success(f"ONLINE: {name}")
+    st.sidebar.success(f"Online: {name}")
     authenticator.logout('Logout', 'sidebar')
     
-    st.title("🏮 DATABASE NEWS ATTIVO")
-    categoria = st.selectbox("SCEGLI CATEGORIA:", ["IN CORSO", "PROSSIMAMENTE", "TOP RATED"])
+    st.title("🏮 NOTIZIE RECENTI")
+    categoria = st.selectbox("FILTRA PER:", ["IN CORSO", "PROSSIMAMENTE", "TOP RATED"])
     
     url_map = {
         "IN CORSO": "https://jikan.moe",
@@ -109,27 +116,26 @@ if auth_status:
             cols = st.columns(3)
             for i, anime in enumerate(data):
                 with cols[i % 3]:
-                    st.markdown(f'<div class="anime-card"><img src="{anime["images"]["jpg"]["large_image_url"]}" style="width:100%; height:300px; object-fit:cover; border-radius:10px;"><h4 style="color:#ff4b4b; margin-top:10px;">{anime["title"][:30]}...</h4></div>', unsafe_allow_html=True)
-                    st.link_button("APRI FILE", anime['url'])
+                    st.markdown(f'<div class="anime-card"><img src="{anime["images"]["jpg"]["large_image_url"]}" style="width:100%; height:300px; object-fit:cover; border-radius:10px;"><h4 style="color:#ff4b4b; margin-top:10px;">{anime["title"][:30]}</h4></div>', unsafe_allow_html=True)
+                    st.link_button("APRI SCHEDA", anime['url'])
         else:
-            st.warning("⚠️ API in sovraccarico.")
+            st.warning("⚠️ Database momentaneamente occupato.")
     except:
-        st.error("Errore di connessione.")
+        st.error("Connessione fallita.")
 
 else:
-    st.title("🏯 ACCESSO PROTETTO")
+    st.title("🏯 ACCESSO AL DATABASE")
     
     try:
         st.image("benvenuto.jpg", use_container_width=True)
     except:
-        st.markdown('<div style="background: linear-gradient(90deg, #ff4b4b, #8e44ad); padding: 80px; border-radius: 20px; text-align: center;"><h1 style="color: white !important;">MY ANIME NEWS</h1></div>', unsafe_allow_html=True)
+        st.markdown('<div style="background: #2f3136; padding: 80px; border-radius: 20px; text-align: center; border: 1px solid #ff4b4b;"><h1 style="color: #ff4b4b !important;">MY ANIME NEWS</h1><p style="color: white;">Inserisci i file di accesso</p></div>', unsafe_allow_html=True)
     
-    with st.sidebar.expander("🆕 NON HAI UN ACCOUNT? REGISTRATI"):
+    with st.sidebar.expander("🆕 REGISTRATI"):
         try:
-            # FIX: Aggiunto pre-authorization=[] per risolvere l'errore
             if authenticator.register_user(location='sidebar', pre_authorization=[]):
-                st.success('Registrato! Accedi sopra.')
+                st.success('Registrato! Accedi ora.')
         except Exception as e:
             st.error(f"Errore: {e}")
     
-    st.warning("IDENTIFICARSI NELLA SIDEBAR PER SBLOCCARE I FILE.")
+    st.warning("Accedi dalla barra laterale per sbloccare i contenuti.")

@@ -49,7 +49,7 @@ st.markdown("""
     /* LOGO GIGANTE E TESTO ALTO */
     .anime-logo {
         font-family: 'Bangers', cursive;
-        font-size: clamp(4rem, 15vw, 10rem); /* Adattabile ma enorme */
+        font-size: clamp(12rem, 15vw, 10rem); /* Adattabile ma enorme */
         text-align: center;
         color: #fff;
         text-shadow: 

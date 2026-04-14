@@ -3,24 +3,67 @@ import requests
 import streamlit_authenticator as stauth
 from datetime import datetime
 
-# --- 1. DESIGN "ULTRA TITAN" ---
+# --- 1. DESIGN "ULTRA TITAN" CON PETALI FORZATI ---
 st.set_page_config(page_title="My Anime News - AniList Edition", page_icon="🏮", layout="wide")
 
 st.markdown("""
     <style>
     @import url('https://googleapis.com');
+    
     .stApp { background: #050508; color: #f0f0f0; font-family: 'Rajdhani', sans-serif; }
-    .sakura-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 99999; }
-    .petal { position: absolute; background-color: #ffb7c5; border-radius: 150% 0 150% 0; opacity: 0.8; filter: drop-shadow(0 0 15px #ffb7c5); animation: fall linear infinite; }
-    @keyframes fall { 0% { transform: translateY(-10vh) rotate(0deg); opacity: 0; } 100% { transform: translateY(110vh) rotate(720deg); opacity: 0; } }
-    .anime-logo { font-family: 'Bangers', cursive; font-size: clamp(8rem, 25vw, 18rem); text-align: center; color: #fff; text-shadow: 0 0 25px #ff4b4b, 0 0 50px #ff4b4b, 0 0 100px #ff4b4b; margin-top: -160px; line-height: 0.8; position: relative; z-index: 10; white-space: nowrap; }
-    .fresche-title { text-align: center; font-size: clamp(1rem, 3vw, 1.8rem); color: #ffffff !important; font-weight: 700; letter-spacing: 12px; margin-top: -20px; margin-bottom: 70px; text-transform: uppercase; display: block; position: relative; z-index: 10; opacity: 0.9; }
-    .fresh-card { background: rgba(45, 45, 50, 0.9); border: 2px solid rgba(255, 75, 75, 0.4); border-radius: 15px; padding: 25px; backdrop-filter: blur(10px); height: 550px; }
+
+    /* PETALI SAKURA GIGANTI - FORZATI SOPRA TUTTO */
+    .sakura-container {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw; height: 100vh;
+        pointer-events: none;
+        z-index: 99999; /* Indispensabile per non farli sparire */
+    }
+
+    .petal {
+        position: absolute;
+        background-color: #ffb7c5;
+        border-radius: 150% 0 150% 0;
+        opacity: 0.8;
+        filter: drop-shadow(0 0 15px #ffb7c5);
+        animation: fall linear infinite;
+    }
+
+    @keyframes fall {
+        0% { transform: translateY(-10vh) rotate(0deg); opacity: 0; }
+        10% { opacity: 0.8; }
+        100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+    }
+
+    /* TITOLO TITANICO */
+    .anime-logo { 
+        font-family: 'Bangers', cursive; 
+        font-size: clamp(8rem, 25vw, 18rem); 
+        text-align: center; color: #fff; 
+        text-shadow: 0 0 25px #ff4b4b, 0 0 50px #ff4b4b, 0 0 100px #ff4b4b; 
+        margin-top: -160px; line-height: 0.8; position: relative; z-index: 10; white-space: nowrap;
+    }
+
+    .fresche-title { 
+        text-align: center; font-size: clamp(1rem, 3vw, 1.8rem); color: #ffffff !important; 
+        font-weight: 700; letter-spacing: 12px; margin-top: -20px; margin-bottom: 70px; 
+        text-transform: uppercase; display: block; position: relative; z-index: 10; opacity: 0.9;
+    }
+
+    .fresh-card { 
+        background: rgba(45, 45, 50, 0.9); border: 2px solid rgba(255, 75, 75, 0.4); 
+        border-radius: 15px; padding: 25px; backdrop-filter: blur(10px); height: 550px; 
+    }
     </style>
+
+    <!-- HTML DEI PETALI -->
     <div class="sakura-container">
         <div class="petal" style="width:70px; height:70px; left:5%; animation-duration:7s;"></div>
         <div class="petal" style="width:100px; height:100px; left:25%; animation-duration:12s;"></div>
+        <div class="petal" style="width:60px; height:60px; left:50%; animation-duration:10s;"></div>
         <div class="petal" style="width:120px; height:120px; left:75%; animation-duration:15s;"></div>
+        <div class="petal" style="width:80px; height:80px; left:90%; animation-duration:9s;"></div>
     </div>
 """, unsafe_allow_html=True)
 
@@ -28,7 +71,7 @@ st.markdown("""
 if 'config' not in st.session_state:
     st.session_state.config = {
         "credentials": {"usernames": {"admin": {"name": "Redattore Capo", "password": "$2b$12$K7T6U/f0XpM9kPzN8Ff1.O6R5T7n5.N0v4P0E7S6Z.k6W/F7f5W2K", "email": "admin@myanimenews.it"}}},
-        "cookie": {"key": "sakura_v22_final", "name": "man_cookie_v22", "expiry_days": 30}
+        "cookie": {"key": "sakura_v23_final", "name": "man_cookie_v23", "expiry_days": 30}
     }
 
 authenticator = stauth.Authenticate(st.session_state.config['credentials'], st.session_state.config['cookie']['name'], st.session_state.config['cookie']['key'], st.session_state.config['cookie']['expiry_days'])
@@ -36,20 +79,15 @@ authenticator.login(location='sidebar')
 auth_status = st.session_state.get("authentication_status")
 name = st.session_state.get("name")
 
-# --- 3. FUNZIONI API ANILIST (VERSIONE CORRETTA) ---
+# --- 3. FUNZIONI API ANILIST ---
 def fetch_from_anilist(query, variables):
     url = 'https://anilist.co'
-    headers = {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-    }
+    headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
     try:
         response = requests.post(url, json={'query': query, 'variables': variables}, headers=headers, timeout=15)
-        if response.status_code == 200:
-            return response.json()
+        if response.status_code == 200: return response.json()
         return None
-    except:
-        return None
+    except: return None
 
 @st.cache_data(ttl=3600)
 def get_seasonal_anime():
@@ -66,19 +104,11 @@ def get_seasonal_anime():
       }
     }
     '''
-    # Determina stagione
     month = datetime.now().month
     year = datetime.now().year
-    if 3 <= month <= 5: season = "SPRING"
-    elif 6 <= month <= 8: season = "SUMMER"
-    elif 9 <= month <= 11: season = "FALL"
-    else: season = "WINTER"
-    
-    variables = {'season': season, 'seasonYear': year}
-    data = fetch_from_anilist(query, variables)
-    if data and 'data' in data:
-        return data['data']['Page']['media']
-    return []
+    season = "SPRING" if 3 <= month <= 5 else "SUMMER" if 6 <= month <= 8 else "FALL" if 9 <= month <= 11 else "WINTER"
+    data = fetch_from_anilist(query, {'season': season, 'seasonYear': year})
+    return data['data']['Page']['media'] if data and 'data' in data else []
 
 # --- 4. LOGICA VISUALIZZAZIONE ---
 if auth_status:
@@ -90,9 +120,12 @@ if auth_status:
     st.markdown('<p class="fresche-title">INFORMAZIONI ANIME FRESCHE</p>', unsafe_allow_html=True)
 
     if menu == "🏠 News":
-        with st.spinner("Consultando gli archivi di AniList..."):
-            news = get_seasonal_anime()
-        
+        # Pulsante di emergenza se le news non caricano
+        if st.button("🔄 Ricarica Database"):
+            st.cache_data.clear()
+            st.rerun()
+
+        news = get_seasonal_anime()
         if news:
             cols = st.columns(3)
             for i, a in enumerate(news):
@@ -104,9 +137,8 @@ if auth_status:
                     </div>""", unsafe_allow_html=True)
                     with st.expander("Trama"):
                         st.write(a['description'].replace('<br>', '')[:200] if a['description'] else "Nessuna descrizione.")
-                        st.link_button("Sito Ufficiale", a['siteUrl'])
         else:
-            st.error("🏮 Errore di connessione. Controlla che 'requests' sia installato nel file requirements.txt.")
+            st.warning("🏮 Connessione lenta. Clicca su 'Ricarica Database' sopra.")
 
 elif auth_status is None:
     st.markdown('<p class="anime-logo">MY ANIME NEWS</p>', unsafe_allow_html=True)
@@ -114,4 +146,3 @@ elif auth_status is None:
     with st.sidebar.expander("Non hai un account? Registrati"):
         if authenticator.register_user(location='main'):
             st.success('Registrato! Accedi ora.')
-    st.markdown("<div style='text-align:center;'><h3>ACCEDI DALLA SIDEBAR PER CONTINUARE</h3></div>", unsafe_allow_html=True)

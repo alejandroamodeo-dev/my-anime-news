@@ -48,7 +48,7 @@ st.markdown("""
 if 'config' not in st.session_state:
     st.session_state.config = {
         "credentials": {"usernames": {"admin": {"name": "Redattore Capo", "password": "$2b$12$K7T6U/f0XpM9kPzN8Ff1.O6R5T7n5.N0v4P0E7S6Z.k6W/F7f5W2K", "email": "admin@myanimenews.it"}}},
-        "cookie": {"key": "sakura_v20_anilist", "name": "man_cookie_v20", "expiry_days": 30}
+        "cookie": {"key": "sakura_v21_fix", "name": "man_cookie_v21", "expiry_days": 30}
     }
 
 authenticator = stauth.Authenticate(st.session_state.config['credentials'], st.session_state.config['cookie']['name'], st.session_state.config['cookie']['key'], st.session_state.config['cookie']['expiry_days'])
@@ -56,11 +56,17 @@ authenticator.login(location='sidebar')
 auth_status = st.session_state.get("authentication_status")
 name = st.session_state.get("name")
 
-# --- 3. FUNZIONI API ANILIST (NUOVE E STABILI) ---
+# --- 3. FUNZIONI API ANILIST (FIXATA) ---
 def fetch_anilist(query, variables):
     url = 'https://anilist.co'
-    response = requests.post(url, json={'query': query, 'variables': variables})
-    return response.json()
+    try:
+        response = requests.post(url, json={'query': query, 'variables': variables}, timeout=10)
+        # Se lo stato non è 200, restituisce None invece di provare a decodificare JSON
+        if response.status_code == 200:
+            return response.json()
+        return None
+    except Exception:
+        return None
 
 @st.cache_data(ttl=3600)
 def get_seasonal_anime():
@@ -77,14 +83,17 @@ def get_seasonal_anime():
       }
     }
     '''
-    # Calcolo stagione attuale
     month = datetime.now().month
     year = datetime.now().year
     season = "SPRING" if 3 <= month <= 5 else "SUMMER" if 6 <= month <= 8 else "FALL" if 9 <= month <= 11 else "WINTER"
     
     variables = {'season': season, 'seasonYear': year}
     data = fetch_anilist(query, variables)
-    return data['data']['Page']['media']
+    
+    # Controllo di sicurezza se data è None o non contiene dati validi
+    if data and 'data' in data and data['data']['Page']['media']:
+        return data['data']['Page']['media']
+    return []
 
 def search_anilist(search_text):
     query = '''
@@ -101,7 +110,9 @@ def search_anilist(search_text):
     '''
     variables = {'search': search_text}
     data = fetch_anilist(query, variables)
-    return data['data']['Page']['media']
+    if data and 'data' in data and data['data']['Page']['media']:
+        return data['data']['Page']['media']
+    return []
 
 # --- 4. LOGICA VISUALIZZAZIONE ---
 if auth_status:
@@ -114,32 +125,38 @@ if auth_status:
 
     if menu == "🏠 News":
         news = get_seasonal_anime()
-        cols = st.columns(3)
-        for i, a in enumerate(news):
-            with cols[i % 3]:
-                st.markdown(f"""<div class="fresh-card">
-                    <img src="{a['coverImage']['large']}" style="width:100%; height:280px; object-fit:cover; border-radius:10px;">
-                    <h4 style="color:#ff4b4b; margin-top:10px;">{a['title']['romaji'][:40]}</h4>
-                    <p style="color:#ccc;">⭐ Score: {a['averageScore'] if a['averageScore'] else '??'}</p>
-                </div>""", unsafe_allow_html=True)
-                with st.expander("Trama"):
-                    st.write(a['description'].replace('<br>', '')[:200] if a['description'] else "Nessuna descrizione.")
-                    st.link_button("Vai alla fonte", a['siteUrl'])
+        if news:
+            cols = st.columns(3)
+            for i, a in enumerate(news):
+                with cols[i % 3]:
+                    st.markdown(f"""<div class="fresh-card">
+                        <img src="{a['coverImage']['large']}" style="width:100%; height:280px; object-fit:cover; border-radius:10px;">
+                        <h4 style="color:#ff4b4b; margin-top:10px;">{a['title']['romaji'][:40]}</h4>
+                        <p style="color:#ccc;">⭐ Score: {a['averageScore'] if a['averageScore'] else '??'}</p>
+                    </div>""", unsafe_allow_html=True)
+                    with st.expander("Trama"):
+                        st.write(a['description'].replace('<br>', '')[:200] if a['description'] else "Nessuna descrizione.")
+                        st.link_button("Vai alla fonte", a['siteUrl'])
+        else:
+            st.warning("🏮 Il database di AniList non risponde. Riprova più tardi.")
 
     elif menu == "🔍 Cerca Anime":
         st.subheader("🔍 Ricerca Istantanea")
         query = st.text_input("Cerca un titolo...")
         if query:
             results = search_anilist(query)
-            cols = st.columns(3)
-            for i, a in enumerate(results):
-                with cols[i % 3]:
-                    st.markdown(f"""<div class="fresh-card">
-                        <img src="{a['coverImage']['large']}" style="width:100%; height:280px; object-fit:cover; border-radius:10px;">
-                        <h4 style="color:#ff4b4b; margin-top:10px;">{a['title']['romaji']}</h4>
-                        <p style="color:#ccc;">⭐ Score: {a['averageScore'] if a['averageScore'] else '??'}</p>
-                    </div>""", unsafe_allow_html=True)
-                    st.link_button("Apri Scheda", a['siteUrl'])
+            if results:
+                cols = st.columns(3)
+                for i, a in enumerate(results):
+                    with cols[i % 3]:
+                        st.markdown(f"""<div class="fresh-card">
+                            <img src="{a['coverImage']['large']}" style="width:100%; height:280px; object-fit:cover; border-radius:10px;">
+                            <h4 style="color:#ff4b4b; margin-top:10px;">{a['title']['romaji']}</h4>
+                            <p style="color:#ccc;">⭐ Score: {a['averageScore'] if a['averageScore'] else '??'}</p>
+                        </div>""", unsafe_allow_html=True)
+                        st.link_button("Apri Scheda", a['siteUrl'])
+            else:
+                st.info("Nessun risultato trovato.")
 
 elif auth_status is None:
     st.markdown('<p class="anime-logo">MY ANIME NEWS</p>', unsafe_allow_html=True)

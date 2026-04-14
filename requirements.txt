@@ -1,3 +1,5 @@
 streamlit
 requests
-streamlit-authenticator==0.3.2
+streamlit-authenticator
+pandas
+plotly

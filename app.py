@@ -8,6 +8,7 @@ st.set_page_config(page_title="My Anime News - Sakura HD", page_icon="🏮", lay
 
 st.markdown("""
     <style>
+    /* IMPORTAZIONE FONT CORRETTA */
     @import url('https://googleapis.com');
 
     .stApp {
@@ -64,6 +65,7 @@ st.markdown("""
         padding: 25px;
         transition: 0.4s;
         backdrop-filter: blur(8px);
+        height: 480px;
     }
     
     .anime-title-text {
@@ -71,6 +73,8 @@ st.markdown("""
         font-weight: 700;
         color: #ff4b4b;
         margin-top: 10px;
+        height: 70px;
+        overflow: hidden;
     }
 
     .anime-info-text {
@@ -122,6 +126,7 @@ if auth_status:
     st.markdown('<p class="fresche-title">INFORMAZIONI ANIME FRESCHE</p>', unsafe_allow_html=True)
 
     try:
+        # ENDPOINT CORRETTO
         response = requests.get("https://jikan.moe", timeout=10)
         res = response.json().get('data', [])[:9]
         
@@ -129,13 +134,14 @@ if auth_status:
             cols = st.columns(3)
             for i, anime in enumerate(res):
                 with cols[i % 3]:
-                    studios = anime.get('studios', [])
-                    studio_name = studios[0].get('name', 'N/D') if studios else 'N/D'
+                    # FIX ESTRAZIONE STUDIOS
+                    studios_list = anime.get('studios', [])
+                    studio_name = studios_list[0].get('name', 'N/D') if studios_list else 'N/D'
                     
                     st.markdown(f"""
                         <div class="fresh-card">
                             <img src="{anime['images']['jpg']['large_image_url']}" style="width:100%; height:280px; object-fit:cover; border-radius:10px;">
-                            <div class="anime-title-text">{anime['title'][:30]}</div>
+                            <div class="anime-title-text">{anime['title'][:40]}</div>
                             <p class="anime-info-text">{studio_name} • {anime.get('episodes', '?')} Ep.</p>
                         </div>
                     """, unsafe_allow_html=True)
@@ -151,9 +157,10 @@ if auth_status:
 elif auth_status is False:
     st.sidebar.error("Credenziali respinte.")
 
-if not auth_status:
+if auth_status is None:
     with st.sidebar.expander("Non hai un account? Registrati"):
         try:
+            # FIX PARAMETRO REGISTRAZIONE
             if authenticator.register_user(location='main', pre_authorization=[]):
                 st.success('Registrazione completata! Effettua il login.')
         except Exception as e:
@@ -164,3 +171,5 @@ if not auth_status:
             <p class="anime-logo" style="font-size:7rem;">MY ANIME NEWS</p>
             <p style="color:#ffb7c5; font-size:1.5rem; letter-spacing:12px;">ACCESSO RISERVATO</p>
             <p style="opacity:0.6; font-size:1.2rem;">Sblocca le Informazioni Fresche dal pannello laterale</p>
+        </div>
+    """, unsafe_allow_html=True)

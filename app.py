@@ -8,9 +8,9 @@ st.set_page_config(page_title="My Anime News - Sakura HD", page_icon="🏮", lay
 
 st.markdown("""
     <style>
-    /* IMPORTAZIONE FONT CORRETTA */
     @import url('https://googleapis.com');
 
+    /* BACKGROUND & ANIMAZIONE PETALI PIÙ GRANDI */
     .stApp {
         background: #050508;
         color: #f0f0f0;
@@ -65,7 +65,6 @@ st.markdown("""
         padding: 25px;
         transition: 0.4s;
         backdrop-filter: blur(8px);
-        height: 480px;
     }
     
     .anime-title-text {
@@ -73,8 +72,6 @@ st.markdown("""
         font-weight: 700;
         color: #ff4b4b;
         margin-top: 10px;
-        height: 70px;
-        overflow: hidden;
     }
 
     .anime-info-text {
@@ -126,7 +123,7 @@ if auth_status:
     st.markdown('<p class="fresche-title">INFORMAZIONI ANIME FRESCHE</p>', unsafe_allow_html=True)
 
     try:
-        # ENDPOINT CORRETTO
+        # Chiamata API v4 con controllo errori robusto
         response = requests.get("https://jikan.moe", timeout=10)
         res = response.json().get('data', [])[:9]
         
@@ -134,14 +131,14 @@ if auth_status:
             cols = st.columns(3)
             for i, anime in enumerate(res):
                 with cols[i % 3]:
-                    # FIX ESTRAZIONE STUDIOS
-                    studios_list = anime.get('studios', [])
-                    studio_name = studios_list[0].get('name', 'N/D') if studios_list else 'N/D'
+                    # Estrazione sicura del nome dello studio
+                    studios = anime.get('studios', [])
+                    studio_name = studios[0].get('name', 'N/D') if studios else 'N/D'
                     
                     st.markdown(f"""
                         <div class="fresh-card">
                             <img src="{anime['images']['jpg']['large_image_url']}" style="width:100%; height:280px; object-fit:cover; border-radius:10px;">
-                            <div class="anime-title-text">{anime['title'][:40]}</div>
+                            <div class="anime-title-text">{anime['title'][:30]}</div>
                             <p class="anime-info-text">{studio_name} • {anime.get('episodes', '?')} Ep.</p>
                         </div>
                     """, unsafe_allow_html=True)
@@ -149,7 +146,7 @@ if auth_status:
                         st.write(f"**Trama:** {anime.get('synopsis', 'Info segrete...')[:250]}...")
                         st.link_button("COLLEGAMENTO FONTE", anime['url'], use_container_width=True)
         else:
-            st.warning("🏮 Database in aggiornamento...")
+            st.warning("🏮 Database in aggiornamento... Riprova tra un istante.")
             
     except Exception as e:
         st.error(f"Errore di sincronizzazione: {e}")
@@ -157,12 +154,13 @@ if auth_status:
 elif auth_status is False:
     st.sidebar.error("Credenziali respinte.")
 
-if auth_status is None:
+# SEZIONE REGISTRAZIONE (FIXATA)
+if not auth_status:
     with st.sidebar.expander("Non hai un account? Registrati"):
         try:
-            # FIX PARAMETRO REGISTRAZIONE
+            # Parametro corretto pre_authorization per le ultime versioni
             if authenticator.register_user(location='main', pre_authorization=[]):
-                st.success('Registrazione completata! Effettua il login.')
+                st.success('Registrazione completata! Effettua il login dal pannello laterale.')
         except Exception as e:
             st.error(f"Errore: {e}")
 

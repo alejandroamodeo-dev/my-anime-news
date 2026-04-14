@@ -6,7 +6,7 @@ import plotly.express as px
 from datetime import datetime
 import time
 
-# --- 1. DESIGN "SAKURA NEON ELITE" CON FIX FOGLIE ---
+# --- 1. DESIGN "SAKURA NEON ELITE" ---
 st.set_page_config(page_title="My Anime News - Ultimate", page_icon="🏮", layout="wide")
 
 st.markdown("""
@@ -15,13 +15,13 @@ st.markdown("""
     
     .stApp { background: #050508; color: #f0f0f0; font-family: 'Rajdhani', sans-serif; }
 
-    /* FIX FOGLIE: GIGANTI E SOPRA TUTTO */
+    /* FIX FOGLIE: GIGANTI, ROSA ACCESO E SOPRA TUTTO */
     .sakura-container {
         position: fixed;
         top: 0; left: 0;
         width: 100vw; height: 100vh;
         pointer-events: none;
-        z-index: 99999; /* Numero altissimo per non sparire */
+        z-index: 99999;
     }
 
     .petal {
@@ -29,7 +29,7 @@ st.markdown("""
         background-color: #ffb7c5;
         border-radius: 150% 0 150% 0;
         opacity: 0.8;
-        filter: drop-shadow(0 0 10px #ffb7c5); /* Effetto neon sulle foglie */
+        filter: drop-shadow(0 0 12px #ffb7c5);
         animation: fall linear infinite;
     }
 
@@ -39,10 +39,10 @@ st.markdown("""
         100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
     }
 
-    /* TITOLO GIGANTE */
+    /* TITOLO GIGANTE 12REM QUASI IN CIMA */
     .anime-logo { 
         font-family: 'Bangers', cursive; 
-        font-size: clamp(6rem, 15vw, 12rem); 
+        font-size: clamp(6rem, 18vw, 12rem); 
         text-align: center; 
         color: #fff; 
         text-shadow: 0 0 20px #ff4b4b, 0 0 40px #ff4b4b, 0 0 80px #ff4b4b; 
@@ -50,6 +50,7 @@ st.markdown("""
         line-height: 0.9; 
     }
 
+    /* SCRITTA SOTTO BIANCA */
     .fresche-title { 
         text-align: center; 
         font-size: clamp(1rem, 3vw, 1.8rem); 
@@ -67,63 +68,73 @@ st.markdown("""
         border-radius: 15px; 
         padding: 25px; 
         backdrop-filter: blur(10px); 
-        height: 500px; 
+        height: 520px; 
     }
     </style>
 
     <div class="sakura-container">
-        <div class="petal" style="width:45px; height:45px; left:5%; animation-duration:7s;"></div>
-        <div class="petal" style="width:60px; height:60px; left:25%; animation-duration:12s;"></div>
-        <div class="petal" style="width:35px; height:35px; left:45%; animation-duration:10s;"></div>
-        <div class="petal" style="width:75px; height:75px; left:70%; animation-duration:15s;"></div>
-        <div class="petal" style="width:50px; height:50px; left:90%; animation-duration:11s;"></div>
+        <div class="petal" style="width:50px; height:50px; left:5%; animation-duration:7s;"></div>
+        <div class="petal" style="width:65px; height:65px; left:25%; animation-duration:12s;"></div>
+        <div class="petal" style="width:40px; height:40px; left:45%; animation-duration:10s;"></div>
+        <div class="petal" style="width:80px; height:80px; left:70%; animation-duration:15s;"></div>
+        <div class="petal" style="width:55px; height:55px; left:90%; animation-duration:11s;"></div>
     </div>
 """, unsafe_allow_html=True)
 
-# --- 2. SISTEMA ACCOUNT ---
+# --- 2. SISTEMA ACCOUNT (FIX CHIAVI RESET) ---
 if 'config' not in st.session_state:
-    st.session_state.config = {"credentials": {"usernames": {"admin": {"name": "Capo", "password": "$2b$12$K7T6U/f0XpM9kPzN8Ff1.O6R5T7n5.N0v4P0E7S6Z.k6W/F7f5W2K", "email": "a@b.com"}}}, "cookie": {"key": "sakura_v14", "name": "man_cookie", "expiry_days": 30}}
+    st.session_state.config = {
+        "credentials": {
+            "usernames": {
+                "admin": {
+                    "name": "Redattore Capo", 
+                    "password": "$2b$12$K7T6U/f0XpM9kPzN8Ff1.O6R5T7n5.N0v4P0E7S6Z.k6W/F7f5W2K", 
+                    "email": "admin@myanimenews.it"
+                }
+            }
+        },
+        "cookie": {
+            "key": "anime_nexus_mega_key_2024", # Chiave resettata
+            "name": "man_cookie_vFinal",        # Nome cookie cambiato
+            "expiry_days": 30
+        }
+    }
 
-authenticator = stauth.Authenticate(st.session_state.config['credentials'], "man_cookie", "sakura_v14", 30)
+authenticator = stauth.Authenticate(
+    st.session_state.config['credentials'], 
+    st.session_state.config['cookie']['name'], 
+    st.session_state.config['cookie']['key'], 
+    st.session_state.config['cookie']['expiry_days']
+)
+
+# LOGIN
 authenticator.login(location='sidebar')
 auth_status = st.session_state.get("authentication_status")
 name = st.session_state.get("name")
 
-# --- 3. LOGICA NEWS ---
+# --- 3. LOGICA NEWS CON CACHE ---
 @st.cache_data(ttl=600)
 def get_fresh_news():
     try:
-        r = requests.get("https://jikan.moe", timeout=8)
+        r = requests.get("https://jikan.moe", timeout=10)
         if r.status_code == 200: return r.json().get('data', [])[:9]
     except: pass
     return []
 
-# --- 4. LOGICA CHAT ---
+# --- 4. CHAT INTELLIGENTE ---
 def get_ai_response(char, user_text):
-    text = user_text.lower()
-    responses = {
-        "Naruto": {
-            "ramen": "Ichiraku è il paradiso! Andiamoci subito, offro io! Dattebayo!",
-            "sogno": "Diventerò Hokage e tutti smetteranno di guardarmi dall'alto in basso!",
-            "default": "Non arrenderti mai! È la mia strada ninja!"
-        },
-        "Luffy": {
-            "carne": "CARNEEE! Dove? Ne voglio una montagna!",
-            "re": "Diventerò il Re dei Pirati! Sali sulla mia nave!",
-            "default": "Shishishi! Sei un tipo divertente, vuoi unirti alla mia ciurma?"
-        },
-        "Gojo": {
-            "forte": "Tranquillo, io sono il più forte. Nessuno può toccarmi.",
-            "dolci": "Hai dei Mochi? Adoro le cose dolci!",
-            "default": "Mmm, sembra che tu abbia bisogno di una lezione speciale."
-        }
+    t = user_text.lower()
+    res = {
+        "Naruto": {"ramen": "Ichiraku! Offro io, dattebayo!", "sogno": "Hokage! È il mio destino!", "default": "Non mollare mai!"},
+        "Luffy": {"carne": "CARNEEE! Ne voglio mille chili!", "re": "Sarò il Re dei Pirati!", "default": "Shishishi! Sei forte!"},
+        "Gojo": {"forte": "Io sono l'Infinito. Nessuno mi tocca.", "dolci": "Hai dei Mochi? Li adoro!", "default": "Tranquillo, ci sono io."}
     }
-    char_data = responses.get(char, responses["Naruto"])
-    for key in char_data:
-        if key in text: return char_data[key]
-    return char_data["default"]
+    char_res = res.get(char, res["Naruto"])
+    for k in char_res:
+        if k in t: return char_res[k]
+    return char_res["default"]
 
-# --- 5. APP LOGIC ---
+# --- 5. LOGICA APP ---
 if auth_status:
     st.sidebar.write(f"🏮 Shinobi: **{name}**")
     menu = st.sidebar.radio("SISTEMA", ["🏠 News", "💬 Chat Eroi", "📂 Watchlist"])
@@ -136,19 +147,19 @@ if auth_status:
         news = get_fresh_news()
         if news:
             cols = st.columns(3)
-            for i, anime in enumerate(news):
+            for i, a in enumerate(news):
                 with cols[i % 3]:
                     st.markdown(f"""<div class="fresh-card">
-                        <img src="{anime['images']['jpg']['large_image_url']}" style="width:100%; height:250px; object-fit:cover; border-radius:10px;">
-                        <h4 style="color:#ff4b4b; margin-top:10px;">{anime.get('title', 'N/D')[:30]}</h4>
-                        <p style="color:#ccc;">⭐ Score: {anime.get('score', 'N/A')}</p>
+                        <img src="{a['images']['jpg']['large_image_url']}" style="width:100%; height:280px; object-fit:cover; border-radius:10px;">
+                        <h4 style="color:#ff4b4b; margin-top:10px;">{a.get('title')[:30]}</h4>
+                        <p style="color:#ccc;">⭐ Score: {a.get('score', 'N/A')}</p>
                     </div>""", unsafe_allow_html=True)
         else:
-            st.warning("🏮 Server occupati. Riprova tra un istante.")
+            st.warning("🏮 Server occupati. Riprova tra poco.")
 
     elif menu == "💬 Chat Eroi":
-        char = st.selectbox("Scegli:", ["Naruto", "Luffy", "Gojo"])
-        msg = st.chat_input(f"Messaggio per {char}...")
+        char = st.selectbox("Evoca:", ["Naruto", "Luffy", "Gojo"])
+        msg = st.chat_input("Parla con l'eroe...")
         if msg:
             st.chat_message("user").write(msg)
             st.chat_message("assistant").write(get_ai_response(char, msg))
@@ -156,5 +167,9 @@ if auth_status:
 elif auth_status is None:
     st.markdown('<p class="anime-logo">MY ANIME NEWS</p>', unsafe_allow_html=True)
     with st.sidebar.expander("Non hai un account? Registrati"):
-        if authenticator.register_user(location='main'):
-            st.success('Registrato! Accedi ora.')
+        try:
+            # preauthorization=False per eliminare l'errore InvalidToken in fase di input
+            if authenticator.register_user(location='main', preauthorization=False):
+                st.success('Registrato! Ora fai il login.')
+        except Exception as e:
+            st.error(f"Errore: {e}")
